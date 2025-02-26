@@ -9,11 +9,13 @@ import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
 import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.entity.UserRole;
 import org.example.datalabelingtool.domain.users.repository.UserRepository;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -54,6 +56,12 @@ public class UserService {
         );
 
         return toResponseDto(user);
+    }
+
+    public DataResponseDto getAllUsers() {
+        List<UserResponseDto> userResponseDtoList = userRepository.findAll().stream()
+                .map(this::toResponseDto).toList();
+        return new DataResponseDto(userResponseDtoList);
     }
 
     @Transactional
