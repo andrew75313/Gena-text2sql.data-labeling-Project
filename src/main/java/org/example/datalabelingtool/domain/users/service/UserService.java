@@ -66,19 +66,13 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto updateUser(UserUpdateRequestDto requestDto) {
-        String username = requestDto.getCurrentUsername();
-        String password = requestDto.getCurrentPassword();
+    public UserResponseDto updateUser(String id, UserUpdateRequestDto requestDto) {
         String newUsername = requestDto.getNewUsername();
         String newPassword = requestDto.getNewPassword();
 
-        User user = userRepository.findByUsername(username).orElseThrow(
+        User user = userRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("User not found")
         );
-
-        if(!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Wrong password");
-        }
 
         if(StringUtils.hasText(newUsername)) user.updateUsername(newUsername);
         if(StringUtils.hasText(newPassword)) user.updatePassword(passwordEncoder.encode(newPassword));

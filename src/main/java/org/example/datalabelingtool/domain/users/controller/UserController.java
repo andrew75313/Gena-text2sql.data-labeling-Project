@@ -5,14 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
 import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
-import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.service.UserService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,9 +36,9 @@ public class UserController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto requestDto) {
-        UserResponseDto responseDto = userService.updateUser(requestDto);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@Valid @PathVariable String id, @Valid @RequestBody UserUpdateRequestDto requestDto) {
+        UserResponseDto responseDto = userService.updateUser(id, requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

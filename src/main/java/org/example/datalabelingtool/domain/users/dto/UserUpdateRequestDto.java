@@ -7,10 +7,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class UserUpdateRequestDto {
-    @NotBlank
-    private String currentUsername;
-    @NotBlank
-    private String currentPassword;
     private String newUsername;
     private String newPassword;
 }
