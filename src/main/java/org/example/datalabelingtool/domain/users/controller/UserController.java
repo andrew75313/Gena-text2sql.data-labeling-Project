@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
+import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
 import org.example.datalabelingtool.domain.users.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,4 +36,15 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<UserResponseDto> updateUser(@RequestBody UserUpdateRequestDto requestDto) {
+        try {
+            UserResponseDto responseDto = userService.updateUser(requestDto);
+            return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
