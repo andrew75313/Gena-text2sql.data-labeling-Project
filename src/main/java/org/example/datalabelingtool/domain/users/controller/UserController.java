@@ -19,32 +19,23 @@ public class UserController {
 
     @PostMapping("")
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateRequestDto requestDto) {
-        try {
-            UserResponseDto responseDto = userService.createUser(requestDto);
-            return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+
+        UserResponseDto responseDto = userService.createUser(requestDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable String id) {
-        try {
-            UserResponseDto responseDto = userService.getUserById(id);
-            return new ResponseEntity<>(responseDto, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<UserResponseDto> getUserById(@Valid @PathVariable String id) {
+
+        UserResponseDto responseDto = userService.getUserById(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+
     }
 
     @PutMapping("/update")
-    public ResponseEntity<UserResponseDto> updateUser(@RequestBody UserUpdateRequestDto requestDto) {
-        try {
-            UserResponseDto responseDto = userService.updateUser(requestDto);
-            return new ResponseEntity<>(responseDto, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto requestDto) {
 
+        UserResponseDto responseDto = userService.updateUser(requestDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
 }
