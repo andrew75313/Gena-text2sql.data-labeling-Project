@@ -44,6 +44,7 @@ public class UserService {
                 .username(requestDto.getUsername())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .role(role)
+                .isActive(true)
                 .build();
 
         userRepository.save(user);
@@ -52,7 +53,7 @@ public class UserService {
     }
 
     public UserResponseDto getUserById(String id) {
-        User user = userRepository.findById(id).orElseThrow(
+        User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
                 () -> new IllegalArgumentException("User not found")
         );
 
@@ -60,7 +61,7 @@ public class UserService {
     }
 
     public DataResponseDto getAllUsers() {
-        List<UserResponseDto> userResponseDtoList = userRepository.findAll().stream()
+        List<UserResponseDto> userResponseDtoList = userRepository.findAllByIsActiveTrue().stream()
                 .map(this::toResponseDto).toList();
         return new DataResponseDto(userResponseDtoList);
     }
@@ -70,7 +71,7 @@ public class UserService {
         String newUsername = requestDto.getNewUsername();
         String newPassword = requestDto.getNewPassword();
 
-        User user = userRepository.findById(id).orElseThrow(
+        User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
                 () -> new IllegalArgumentException("User not found")
         );
 
@@ -80,12 +81,13 @@ public class UserService {
         return toResponseDto(user);
     }
 
+    @Transactional
     public void deleteUser(@Valid String id) {
-        userRepository.findById(id).orElseThrow(
+        User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
                 () -> new IllegalArgumentException("User not found")
         );
 
-        userRepository.deleteById(id);
+        user.updateIsActive(false);
     }
 
     private UserResponseDto toResponseDto(User user) {

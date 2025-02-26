@@ -24,6 +24,8 @@ public class User extends Timestamp {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private UserRole role;
+    @Column(nullable = false)
+    private Boolean isActive;
 
     public void updateUsername(String username) {
         this.username = username;
@@ -31,5 +33,9 @@ public class User extends Timestamp {
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    public void updateIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
