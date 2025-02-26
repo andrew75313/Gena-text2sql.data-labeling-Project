@@ -7,6 +7,7 @@ import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
 import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.entity.UserRole;
 import org.example.datalabelingtool.domain.users.repository.UserRepository;
+import org.hibernate.annotations.NotFound;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,20 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    public UserResponseDto getUserById(String id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
 
         return UserResponseDto.builder()
                 .id(user.getId())
