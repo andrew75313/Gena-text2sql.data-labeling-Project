@@ -2,6 +2,7 @@ package org.example.datalabelingtool.domain.users.service;
 
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
@@ -83,6 +84,14 @@ public class UserService {
         if(StringUtils.hasText(newPassword)) user.updatePassword(passwordEncoder.encode(newPassword));
 
         return toResponseDto(user);
+    }
+
+    public void deleteUser(@Valid String id) {
+        userRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+
+        userRepository.deleteById(id);
     }
 
     private UserResponseDto toResponseDto(User user) {
