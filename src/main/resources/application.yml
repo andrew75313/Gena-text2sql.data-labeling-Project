@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${MYSQL_DB_URL}
+    username : ${MYSQL_DB_USERNAME}
+    password: ${MYSQL_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+app:
+  admin:
+    code: ${ADMIN_CODE}
