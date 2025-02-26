@@ -1,5 +1,6 @@
 package org.example.datalabelingtool.global.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -21,5 +22,10 @@ public class GlobalExceptionHandler {
             errorMsg.put(fieldName, errorMessage);
         });
         return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        return new ResponseEntity<>("Username already exists.", HttpStatus.BAD_REQUEST);
     }
 }
