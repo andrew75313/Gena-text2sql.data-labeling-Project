@@ -6,11 +6,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.samples.entity.SampleStatus;
 import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -94,5 +96,26 @@ public class DatasetService {
         } catch (Exception e) {
             throw new FileUploadException(e.getMessage(), e);
         }
+    }
+
+    public SampleResponseDto getSampleById(String id) {
+        Sample sample = sampleRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("Sample not found")
+        );
+
+        return toSampleResponseDto(sample);
+    }
+
+    private SampleResponseDto toSampleResponseDto(Sample sample) {
+        return SampleResponseDto.builder()
+                .id(sample.getId())
+                .datasetName(sample.getDatasetName())
+                .datasetDescription(sample.getDatasetDescription())
+                .versionId(sample.getVersionId())
+                .status(sample.getStatus())
+                .sampleData(sample.getSampleData())
+                .createdAt(sample.getCreatedAt())
+                .updatedAt(sample.getUpdatedAt())
+                .build();
     }
 }
