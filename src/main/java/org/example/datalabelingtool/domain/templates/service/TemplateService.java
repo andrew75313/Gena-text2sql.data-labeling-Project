@@ -1,5 +1,6 @@
 package org.example.datalabelingtool.domain.templates.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.templates.dto.TemplateResponseDto;
@@ -19,7 +20,7 @@ public class TemplateService {
 
     public TemplateResponseDto getTemplateById(@Valid String id) {
         Template template = templateRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Template not found")
+                () -> new EntityNotFoundException("Template not found")
         );
 
         return toTemplateResponseDto(template);

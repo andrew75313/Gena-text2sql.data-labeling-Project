@@ -1,6 +1,7 @@
 package org.example.datalabelingtool.domain.users.service;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class UserService {
 
     public UserResponseDto getUserById(String id) {
         User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
+                () -> new EntityNotFoundException("User not found")
         );
 
         return toResponseDto(user);
@@ -72,7 +73,7 @@ public class UserService {
         String newPassword = requestDto.getNewPassword();
 
         User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
+                () -> new EntityNotFoundException("User not found")
         );
 
         if(StringUtils.hasText(newUsername)) user.updateUsername(newUsername);
@@ -84,7 +85,7 @@ public class UserService {
     @Transactional
     public void deleteUser(@Valid String id) {
         User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
+                () -> new EntityNotFoundException("User not found")
         );
 
         user.updateIsActive(false);

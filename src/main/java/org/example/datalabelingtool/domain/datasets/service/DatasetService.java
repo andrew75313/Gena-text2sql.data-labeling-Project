@@ -2,6 +2,7 @@ package org.example.datalabelingtool.domain.datasets.service;
 
 import com.google.gson.JsonObject;
 import com.opencsv.CSVReader;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -13,6 +14,7 @@ import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
+import org.example.datalabelingtool.global.exception.FileProcessingException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +37,7 @@ public class DatasetService {
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             String[] columns = csvReader.readNext();
 
-            if (columns == null) throw new IllegalArgumentException("CSV file is empty");
+            if (columns == null) throw new FileProcessingException("CSV file is empty");
 
             String[] targetColumns = {"sql_query", "natural_question", "no_sql_template", "sql_template"};
             Map<String, Integer> columnIndexMap = new HashMap<>();
@@ -49,7 +51,7 @@ public class DatasetService {
             }
 
             if (columnIndexMap.size() != 4)
-                throw new IllegalArgumentException("CSV file must contain 4 columns : sql_query, natural_question, no_template, sql_template");
+                throw new FileProcessingException("CSV file must contain 4 columns : sql_query, natural_question, no_template, sql_template");
 
             Integer noTemplateIndex = columnIndexMap.get("no_sql_template");
             Integer sqlTemplateIndex = columnIndexMap.get("sql_template");
@@ -101,7 +103,7 @@ public class DatasetService {
 
     public SampleResponseDto getSampleById(String id) {
         Sample sample = sampleRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Sample not found")
+                () -> new EntityNotFoundException("Sample not found")
         );
 
         return toSampleResponseDto(sample);
