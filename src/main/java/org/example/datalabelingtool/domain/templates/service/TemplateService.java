@@ -7,6 +7,9 @@ import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class TemplateService {
@@ -20,6 +23,14 @@ public class TemplateService {
 
         return toTemplateResponseDto(template);
     }
+
+
+    public List<TemplateResponseDto> getAllTemplates() {
+        return templateRepository.findAllOrderByTemplateNoAsc().stream()
+                .map(this::toTemplateResponseDto)
+                .collect(Collectors.toList());
+    }
+
 
     private TemplateResponseDto toTemplateResponseDto(Template template) {
         return TemplateResponseDto.builder()

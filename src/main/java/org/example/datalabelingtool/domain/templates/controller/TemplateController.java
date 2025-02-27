@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/templates")
@@ -22,5 +24,11 @@ public class TemplateController {
     public ResponseEntity<TemplateResponseDto> getTemplateById(@Valid @PathVariable String id) {
         TemplateResponseDto responseDto = templateService.getTemplateById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<TemplateResponseDto>> getAllTemplates() {
+        List<TemplateResponseDto> responseDtoList = templateService.getAllTemplates();
+        return new ResponseEntity<>(responseDtoList, HttpStatus.OK);
     }
 }
