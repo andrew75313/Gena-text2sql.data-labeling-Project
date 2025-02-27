@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/datasets")
@@ -20,7 +22,7 @@ public class DatasetController {
 
     @PostMapping("/upload")
     public ResponseEntity<MessageResponseDto> uploadCsvFile(@RequestPart("file") MultipartFile file,
-                                                            @RequestPart("metadata") DatasetMetadataDto metadata) throws Exception{
+                                                            @RequestPart("metadata") DatasetMetadataDto metadata) throws Exception {
         datasetService.uploadCsvFile(file, metadata);
         return new ResponseEntity<>(new MessageResponseDto("Dataset uploaded successfully"), HttpStatus.CREATED);
     }
@@ -29,5 +31,11 @@ public class DatasetController {
     public ResponseEntity<SampleResponseDto> getSampleById(@Valid @PathVariable String id) {
         SampleResponseDto responseDto = datasetService.getSampleById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/latest-versions")
+    public ResponseEntity<List<SampleResponseDto>> getLatestUpdatedSamples() {
+        List<SampleResponseDto> responseDtoList = datasetService.getLatestUpdatesSamples();
+        return new ResponseEntity<>(responseDtoList, HttpStatus.OK);
     }
 }
