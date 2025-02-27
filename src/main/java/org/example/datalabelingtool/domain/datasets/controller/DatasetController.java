@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.service.DatasetService;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.example.datalabelingtool.global.dto.MessageResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +35,8 @@ public class DatasetController {
     }
 
     @GetMapping("/latest-versions")
-    public ResponseEntity<List<SampleResponseDto>> getLatestUpdatedSamples() {
-        List<SampleResponseDto> responseDtoList = datasetService.getLatestUpdatesSamples();
-        return new ResponseEntity<>(responseDtoList, HttpStatus.OK);
+    public ResponseEntity<DataResponseDto> getLatestUpdatedSamples() {
+        DataResponseDto responseDto = datasetService.getLatestUpdatesSamples();
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 }
