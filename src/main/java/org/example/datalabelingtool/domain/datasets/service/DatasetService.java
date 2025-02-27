@@ -12,6 +12,7 @@ import org.example.datalabelingtool.domain.samples.entity.SampleStatus;
 import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -106,10 +107,12 @@ public class DatasetService {
         return toSampleResponseDto(sample);
     }
 
-    public List<SampleResponseDto> getLatestUpdatesSamples() {
-        return sampleRepository.findLatestUpdatedSample().stream()
+    public DataResponseDto getLatestUpdatesSamples() {
+        List<SampleResponseDto> responseDtoList = sampleRepository.findLatestUpdatedSample().stream()
                 .map(this::toSampleResponseDto)
                 .collect(Collectors.toList());
+
+        return new DataResponseDto(responseDtoList);
     }
 
     private SampleResponseDto toSampleResponseDto(Sample sample) {
