@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.templates.dto.TemplateResponseDto;
 import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,10 +26,11 @@ public class TemplateService {
     }
 
 
-    public List<TemplateResponseDto> getAllTemplates() {
-        return templateRepository.findAllOrderByTemplateNoAsc().stream()
+    public DataResponseDto getAllTemplates() {
+        List<TemplateResponseDto> responseDtoList = templateRepository.findAllOrderByTemplateNoAsc().stream()
                 .map(this::toTemplateResponseDto)
                 .collect(Collectors.toList());
+        return new DataResponseDto(responseDtoList);
     }
 
 

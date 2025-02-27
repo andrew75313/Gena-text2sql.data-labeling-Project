@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.templates.dto.TemplateResponseDto;
 import org.example.datalabelingtool.domain.templates.service.TemplateService;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +28,8 @@ public class TemplateController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<TemplateResponseDto>> getAllTemplates() {
-        List<TemplateResponseDto> responseDtoList = templateService.getAllTemplates();
-        return new ResponseEntity<>(responseDtoList, HttpStatus.OK);
+    public ResponseEntity<DataResponseDto> getAllTemplates() {
+        DataResponseDto responseDto = templateService.getAllTemplates();
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 }
