@@ -34,6 +34,12 @@ public class DatasetController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
+    @GetMapping("/requested")
+    public ResponseEntity<DataResponseDto> getRequestedSamples() {
+        DataResponseDto responseDto = datasetService.getRequestedSamples();
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SampleResponseDto> getSampleById(@Valid @PathVariable String id) {
         SampleResponseDto responseDto = datasetService.getSampleById(id);

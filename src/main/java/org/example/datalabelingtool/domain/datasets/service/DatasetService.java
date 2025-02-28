@@ -188,6 +188,14 @@ public class DatasetService {
                 .build();
     }
 
+    public DataResponseDto getRequestedSamples() {
+        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
+                .map(this::toSampleResponseDto)
+                .collect(Collectors.toList());
+
+        return new DataResponseDto(responseDtoList);
+    }
+
     private Sample findSample(String id) {
         return sampleRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Sample not found")
