@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.service.DatasetService;
+import org.example.datalabelingtool.domain.samples.dto.SampleApproveResponseDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleRejectResponseDto;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
 import org.example.datalabelingtool.domain.samples.dto.SampleUpdateRequestDto;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
@@ -53,4 +55,15 @@ public class DatasetController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<SampleApproveResponseDto> approveSample(@Valid @PathVariable String id) {
+        SampleApproveResponseDto responseDto = datasetService.approveSample(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<SampleRejectResponseDto> rejectSample(@Valid @PathVariable String id) {
+        SampleRejectResponseDto responseDto = datasetService.rejectSample(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
 }

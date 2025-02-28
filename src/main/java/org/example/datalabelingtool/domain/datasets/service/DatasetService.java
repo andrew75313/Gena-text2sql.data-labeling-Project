@@ -6,10 +6,13 @@ import com.google.gson.JsonObject;
 import com.opencsv.CSVReader;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.entity.DatasetColumn;
+import org.example.datalabelingtool.domain.samples.dto.SampleApproveResponseDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleRejectResponseDto;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
 import org.example.datalabelingtool.domain.samples.dto.SampleUpdateRequestDto;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -162,7 +166,7 @@ public class DatasetService {
                 .id(UUID.randomUUID().toString())
                 .datasetName(sample.getDatasetName())
                 .datasetDescription(sample.getDatasetDescription())
-                .versionId(sample.getVersionId() + 1)
+                .versionId(sample.getVersionId())
                 .sampleData(objectMapper.writeValueAsString(sampleDataMap))
                 .status(sample.getStatus())
                 .build();
@@ -194,6 +198,29 @@ public class DatasetService {
                 .collect(Collectors.toList());
 
         return new DataResponseDto(responseDtoList);
+    }
+
+    @Transactional
+    public SampleApproveResponseDto approveSample(@Valid String id) {
+        Sample sample = findSample(id);
+        sample.updateStatus(SampleStatus.UPDATED);
+        sample.updateVersionId(sample.getVersionId() + 1);
+        return SampleApproveResponseDto.builder()
+                .sampleId(sample.getId())
+                .status(SampleStatus.UPDATED.toString())
+                .approvedAt(LocalDateTime.now())
+                .build();
+    }
+
+    @Transactional
+    public SampleRejectResponseDto rejectSample(@Valid String id) {
+        Sample sample = findSample(id);
+        sample.updateStatus(SampleStatus.REJECTED);
+        return SampleRejectResponseDto.builder()
+                .sampleId(sample.getId())
+                .status(SampleStatus.REJECTED.toString())
+                .rejectedAt(LocalDateTime.now())
+                .build();
     }
 
     private Sample findSample(String id) {

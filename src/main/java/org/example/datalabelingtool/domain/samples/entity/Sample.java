@@ -35,4 +35,8 @@ public class Sample extends Timestamp {
     public void updateStatus(SampleStatus status) {
         this.status = status;
     }
+
+    public void updateVersionId(Long versionId) {
+        this.versionId = versionId;
+    }
 }
