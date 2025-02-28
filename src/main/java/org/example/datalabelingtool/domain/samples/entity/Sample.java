@@ -17,7 +17,6 @@ public class Sample extends Timestamp {
     @Id
     private String id;
 
-
     @Column(nullable = false)
     private String datasetName;
 
@@ -32,4 +31,8 @@ public class Sample extends Timestamp {
 
     @Column(columnDefinition = "JSON")
     private String sampleData;
+
+    public void updateStatus(SampleStatus status) {
+        this.status = status;
+    }
 }
