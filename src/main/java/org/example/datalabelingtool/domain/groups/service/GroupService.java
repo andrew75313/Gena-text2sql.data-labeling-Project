@@ -57,7 +57,7 @@ public class GroupService {
     }
 
     public DataResponseDto getAllGroups() {
-        List<GroupResponseDto> responseDtoList = groupRepository.findAll().stream()
+        List<GroupResponseDto> responseDtoList = groupRepository.findAllByIsActiveTrue().stream()
                 .map(this::toGroupResponseDto)
                 .collect(Collectors.toList());
         return new DataResponseDto(responseDtoList);
@@ -69,6 +69,8 @@ public class GroupService {
         String newGroupDescription = requestDto.getNewGroupDescription();
 
         Group group = findGroup(id);
+
+        if(!group.getIsActive()) throw new EntityNotFoundException("Group not found");
 
         if(newGroupName != null && !newGroupName.isEmpty()) group.updateName(newGroupName);
         if(newGroupDescription != null && !newGroupDescription.isEmpty()) group.updateDescription(newGroupDescription);
@@ -96,6 +98,7 @@ public class GroupService {
                 .id(group.getId())
                 .name(group.getName())
                 .description(group.getDescription())
+                .isActive(group.getIsActive())
                 .createdAt(group.getCreatedAt())
                 .updatedAt(group.getUpdatedAt())
                 .build();
