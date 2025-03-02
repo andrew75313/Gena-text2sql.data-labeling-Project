@@ -46,7 +46,11 @@ public class GroupController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    // delete group
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteGroup(@Valid @PathVariable String id) {
+        groupService.deleteGroup(id);
+        return ResponseEntity.noContent().build();
+    }
 
     // add users
 

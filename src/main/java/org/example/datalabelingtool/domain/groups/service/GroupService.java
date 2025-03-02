@@ -10,6 +10,7 @@ import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
+import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 
@@ -75,9 +76,18 @@ public class GroupService {
         return toGroupResponseDto(group);
     }
 
+    @Transactional
+    public void deleteGroup(@Valid String id) {
+        Group group = groupRepository.findByIdAndIsActiveTrue(id).orElseThrow(
+                () -> new EntityNotFoundException("Group not found")
+        );
+
+        group.updateIsActive(false);
+    }
+
     private Group findGroup(String id) {
         return groupRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("No group found")
+                () -> new EntityNotFoundException("Group not found")
         );
     }
 
