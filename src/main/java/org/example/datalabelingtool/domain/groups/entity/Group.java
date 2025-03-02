@@ -38,4 +38,16 @@ public class Group extends Timestamp {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> reviewers;
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }

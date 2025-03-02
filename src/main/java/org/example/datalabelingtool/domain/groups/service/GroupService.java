@@ -1,10 +1,13 @@
 package org.example.datalabelingtool.domain.groups.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupDataResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
+import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
@@ -39,9 +42,7 @@ public class GroupService {
     }
 
     public GroupDataResponseDto getGroupById(String id) {
-        Group group = groupRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("No group found")
-        );
+        Group group = findGroup(id);
 
         return GroupDataResponseDto.builder()
                 .id(group.getId())
@@ -59,6 +60,25 @@ public class GroupService {
                 .map(this::toGroupResponseDto)
                 .collect(Collectors.toList());
         return new DataResponseDto(responseDtoList);
+    }
+
+    @Transactional
+    public GroupResponseDto updateGroup(@Valid String id, GroupUpdateRequestDto requestDto) {
+        String newGroupName = requestDto.getNewGroupName();
+        String newGroupDescription = requestDto.getNewGroupDescription();
+
+        Group group = findGroup(id);
+
+        if(newGroupName != null && !newGroupName.isEmpty()) group.updateName(newGroupName);
+        if(newGroupDescription != null && !newGroupDescription.isEmpty()) group.updateDescription(newGroupDescription);
+
+        return toGroupResponseDto(group);
+    }
+
+    private Group findGroup(String id) {
+        return groupRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("No group found")
+        );
     }
 
     private GroupResponseDto toGroupResponseDto(Group group) {
