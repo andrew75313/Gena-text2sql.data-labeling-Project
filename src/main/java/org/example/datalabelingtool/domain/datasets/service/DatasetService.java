@@ -130,10 +130,9 @@ public class DatasetService {
 
         Sample sample = findSample(id);
         Long versionId = sample.getVersionId();
-        String sampleData = sample.getSampleData();
-        Map<String, Object> sampleDataMap = objectMapper.readValue(sampleData, Map.class);
-
+        Map<String, Object> sampleDataMap = getSampleDataMap(sample.getId());
         String sampleId = (String) sampleDataMap.get("id");
+
         Sample latestSample = sampleRepository.findLatestBySampleId(sampleId).orElseThrow(
                 () -> new IllegalArgumentException("Bad Request")
         );
@@ -201,10 +200,21 @@ public class DatasetService {
     }
 
     @Transactional
-    public SampleApproveResponseDto approveSample(@Valid String id) {
+    public SampleApproveResponseDto approveSample(@Valid String id) throws JsonProcessingException {
         Sample sample = findSample(id);
         sample.updateStatus(SampleStatus.UPDATED);
+
+        Map<String, Object> sampleDataMap = getSampleDataMap(sample.getId());
+        String sampleId = (String) sampleDataMap.get("id");
+
+        List<Sample> sampleList = sampleRepository.findRequestedBySampleIdAndVersionId(sampleId, sample.getVersionId());
+        for(Sample requestedSample : sampleList) {
+            requestedSample.updateStatus(SampleStatus.REJECTED);
+            requestedSample.updateVersionId(requestedSample.getVersionId() + 1);
+        }
+
         sample.updateVersionId(sample.getVersionId() + 1);
+
         return SampleApproveResponseDto.builder()
                 .sampleId(sample.getId())
                 .status(SampleStatus.UPDATED.toString())
@@ -227,5 +237,11 @@ public class DatasetService {
         return sampleRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Sample not found")
         );
+    }
+
+    private Map<String, Object> getSampleDataMap(String id) throws JsonProcessingException {
+        Sample foundSample = findSample(id);
+        Map<String, Object> sampleDataMap = objectMapper.readValue(foundSample.getSampleData(), Map.class);
+        return sampleDataMap;
     }
 }

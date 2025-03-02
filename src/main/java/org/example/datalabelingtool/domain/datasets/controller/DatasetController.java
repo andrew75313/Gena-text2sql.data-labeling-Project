@@ -56,7 +56,7 @@ public class DatasetController {
     }
 
     @PatchMapping("/{id}/approve")
-    public ResponseEntity<SampleApproveResponseDto> approveSample(@Valid @PathVariable String id) {
+    public ResponseEntity<SampleApproveResponseDto> approveSample(@Valid @PathVariable String id) throws JsonProcessingException {
         SampleApproveResponseDto responseDto = datasetService.approveSample(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }

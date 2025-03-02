@@ -25,4 +25,10 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "WHERE s.status LIKE 'REQUESTED_%' " +
             "ORDER BY JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) ASC, s.version_id ASC", nativeQuery = true)
     List<Sample> findRequestedSample();
+
+    @Query(value = "SELECT s.* FROM samples s " +
+            "WHERE JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) = ?1 " +
+            "AND s.status LIKE 'REQUESTED_%' " +
+            "And s.version_id = ?2", nativeQuery = true)
+    List<Sample> findRequestedBySampleIdAndVersionId(String sampleId, Long versionId);
 }
