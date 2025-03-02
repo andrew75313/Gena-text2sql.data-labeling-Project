@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.global.entity.Timestamp;
 
 @Entity
@@ -16,7 +17,6 @@ import org.example.datalabelingtool.global.entity.Timestamp;
 public class Sample extends Timestamp {
     @Id
     private String id;
-
 
     @Column(nullable = false)
     private String datasetName;
@@ -32,4 +32,8 @@ public class Sample extends Timestamp {
 
     @Column(columnDefinition = "JSON")
     private String sampleData;
+
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private Group group;
 }
