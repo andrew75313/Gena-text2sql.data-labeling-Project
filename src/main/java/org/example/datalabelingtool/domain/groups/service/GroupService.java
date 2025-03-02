@@ -1,15 +1,19 @@
 package org.example.datalabelingtool.domain.groups.service;
 
-import jakarta.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
+import org.example.datalabelingtool.domain.groups.dto.GroupDataResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,29 @@ public class GroupService {
         Group savedGroup = groupRepository.findById(group.getId()).orElse(null);
 
         return toGroupResponseDto(savedGroup);
+    }
+
+    public GroupDataResponseDto getGroupById(String id) {
+        Group group = groupRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("No group found")
+        );
+
+        return GroupDataResponseDto.builder()
+                .id(group.getId())
+                .name(group.getName())
+                .description(group.getDescription())
+                .createdAt(group.getCreatedAt())
+                .updatedAt(group.getUpdatedAt())
+                .reviewers(group.getReviewers())
+                .samples(group.getSamples())
+                .build();
+    }
+
+    public DataResponseDto getAllGroups() {
+        List<GroupResponseDto> responseDtoList = groupRepository.findAll().stream()
+                .map(this::toGroupResponseDto)
+                .collect(Collectors.toList());
+        return new DataResponseDto(responseDtoList);
     }
 
     private GroupResponseDto toGroupResponseDto(Group group) {

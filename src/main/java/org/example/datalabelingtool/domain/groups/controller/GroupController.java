@@ -3,16 +3,14 @@ package org.example.datalabelingtool.domain.groups.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
+import org.example.datalabelingtool.domain.groups.dto.GroupDataResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.service.GroupService;
-import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
+import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,11 +25,19 @@ public class GroupController {
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<GroupDataResponseDto> getGroupById(@Valid @PathVariable String id) {
+        GroupDataResponseDto responseDto = groupService.getGroupById(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<DataResponseDto> getAllGroups() {
+        DataResponseDto responseDto = groupService.getAllGroups();
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
     // update group
-
-    // retrieve group
-
-    // retrieve all group
 
     // delete group
 
