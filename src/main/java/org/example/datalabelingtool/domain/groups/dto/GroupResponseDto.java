@@ -2,11 +2,9 @@ package org.example.datalabelingtool.domain.groups.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.example.datalabelingtool.domain.samples.entity.Sample;
-import org.example.datalabelingtool.domain.users.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Builder
@@ -17,6 +15,6 @@ public class GroupResponseDto {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Set<User> reviewers;
-    private Set<Sample> samples;
+    private List<String> reviewerIds;
+    private List<String> sampleIds;
 }

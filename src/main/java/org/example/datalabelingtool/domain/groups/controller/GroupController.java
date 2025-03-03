@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
+import org.example.datalabelingtool.domain.groups.dto.GroupUpdateReviewersRequestDto;
 import org.example.datalabelingtool.domain.groups.service.GroupService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
@@ -50,11 +51,13 @@ public class GroupController {
 
     // retrieve user's groups
 
-    // add users
-
-    // remove users
+    @PostMapping("/{id}/update-reviewers")
+    public ResponseEntity<GroupResponseDto> updateReviewers(@Valid @PathVariable String id,
+                                                            @Valid @RequestBody GroupUpdateReviewersRequestDto requestDto) {
+        GroupResponseDto responseDto = groupService.updateReviewers(id, requestDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
 
     // add samples
-
     // remove samples
 }

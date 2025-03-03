@@ -50,4 +50,20 @@ public class Group extends Timestamp {
     public void updateIsActive(Boolean isActive) {
         this.isActive = isActive;
     }
+
+    public void addReviewer(User user) {
+        this.reviewers.add(user);
+    }
+
+    public void removeReviewer(User user) {
+        this.reviewers.remove(user);
+    }
+
+    public void addSample(Sample sample) {
+        this.samples.add(sample);
+    }
+
+    public void removeSample(Sample sample) {
+        this.samples.remove(sample);
+    }
 }
