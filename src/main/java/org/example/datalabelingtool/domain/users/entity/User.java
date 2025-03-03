@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.global.entity.Timestamp;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -26,6 +29,9 @@ public class User extends Timestamp {
     private UserRole role;
     @Column(nullable = false)
     private Boolean isActive;
+
+    @ManyToMany(mappedBy = "reviewers")
+    private List<Group> groups;
 
     public void updateUsername(String username) {
         this.username = username;
