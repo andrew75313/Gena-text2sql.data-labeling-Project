@@ -3,12 +3,9 @@ package org.example.datalabelingtool.domain.groups.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupDataResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
 import org.example.datalabelingtool.domain.groups.service.GroupService;
-import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
-import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +25,8 @@ public class GroupController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GroupDataResponseDto> getGroupById(@Valid @PathVariable String id) {
-        GroupDataResponseDto responseDto = groupService.getGroupById(id);
+    public ResponseEntity<GroupResponseDto> getGroupById(@Valid @PathVariable String id) {
+        GroupResponseDto responseDto = groupService.getGroupById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
@@ -40,8 +37,7 @@ public class GroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupResponseDto> updateGroup(@Valid @PathVariable String id,
-                                                        @Valid @RequestBody GroupUpdateRequestDto requestDto) {
+    public ResponseEntity<GroupResponseDto> updateGroup(@Valid @PathVariable String id, @Valid @RequestBody GroupUpdateRequestDto requestDto) {
         GroupResponseDto responseDto = groupService.updateGroup(id, requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
@@ -51,6 +47,8 @@ public class GroupController {
         groupService.deleteGroup(id);
         return ResponseEntity.noContent().build();
     }
+
+    // retrieve user's groups
 
     // add users
 

@@ -5,12 +5,10 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupDataResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
 import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
-import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 
@@ -42,18 +40,10 @@ public class GroupService {
         return toGroupResponseDto(savedGroup);
     }
 
-    public GroupDataResponseDto getGroupById(String id) {
+    public GroupResponseDto getGroupById(String id) {
         Group group = findGroup(id);
 
-        return GroupDataResponseDto.builder()
-                .id(group.getId())
-                .name(group.getName())
-                .description(group.getDescription())
-                .createdAt(group.getCreatedAt())
-                .updatedAt(group.getUpdatedAt())
-                .reviewers(group.getReviewers())
-                .samples(group.getSamples())
-                .build();
+        return toGroupResponseDto(group);
     }
 
     public DataResponseDto getAllGroups() {
@@ -101,6 +91,8 @@ public class GroupService {
                 .isActive(group.getIsActive())
                 .createdAt(group.getCreatedAt())
                 .updatedAt(group.getUpdatedAt())
+                .reviewers(group.getReviewers())
+                .samples(group.getSamples())
                 .build();
     }
 }
