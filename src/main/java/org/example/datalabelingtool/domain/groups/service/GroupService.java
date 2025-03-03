@@ -4,13 +4,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupUpdateReviewersRequestDto;
+import org.example.datalabelingtool.domain.groups.dto.*;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
+import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.repository.UserRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
@@ -27,6 +25,7 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final SampleRepository sampleRepository;
 
     public GroupResponseDto createGroup(GroupCreateRequestDto requestDto) {
         Group group = Group.builder()
@@ -99,6 +98,23 @@ public class GroupService {
         return toGroupResponseDto(group);
     }
 
+    @Transactional
+    public GroupResponseDto updateSamples(@Valid String id, @Valid GroupUpdateSamplesRequestDto requestDto) {
+        Group group = findGroup(id);
+
+        for(String sampleId : requestDto.getAddSampleIds()) {
+            Sample sample = findSample(sampleId);
+            group.addSample(sample);
+        }
+
+        for(String sampleId : requestDto.getRemoveSampleIds()) {
+            Sample sample = findSample(sampleId);
+            group.removeSample(sample);
+        }
+
+        return toGroupResponseDto(group);
+    }
+
     private Group findGroup(String id) {
         return groupRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Group not found")
@@ -108,6 +124,12 @@ public class GroupService {
     private User findUser(String id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("User not found")
+        );
+    }
+
+    private Sample findSample(String id) {
+        return sampleRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Sample not found")
         );
     }
 

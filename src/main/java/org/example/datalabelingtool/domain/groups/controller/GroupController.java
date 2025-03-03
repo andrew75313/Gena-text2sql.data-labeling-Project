@@ -2,10 +2,7 @@ package org.example.datalabelingtool.domain.groups.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.datalabelingtool.domain.groups.dto.GroupCreateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupResponseDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupUpdateRequestDto;
-import org.example.datalabelingtool.domain.groups.dto.GroupUpdateReviewersRequestDto;
+import org.example.datalabelingtool.domain.groups.dto.*;
 import org.example.datalabelingtool.domain.groups.service.GroupService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
@@ -58,6 +55,10 @@ public class GroupController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    // add samples
-    // remove samples
+    @PostMapping("/{id}/update-samples")
+    public ResponseEntity<GroupResponseDto> updateSamples(@Valid @PathVariable String id,
+                                                            @Valid @RequestBody GroupUpdateSamplesRequestDto requestDto) {
+        GroupResponseDto responseDto = groupService.updateSamples(id, requestDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
 }
