@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface SampleRepository extends JpaRepository<Sample, String> {
 
     @Query(value = "SELECT s.* FROM samples s " +
-            "WHERE JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.status')) = 'UPDATED' " +
+            "WHERE s.status IN ('UPDATED','DELETED','CREATED') " +
             "AND s.version_id = (SELECT MAX(s2.version_id) FROM samples s2 WHERE JSON_UNQUOTE(JSON_EXTRACT(s2.sample_data, '$.id')) = JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id'))) " +
             "ORDER BY JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) ASC", nativeQuery = true)
     List<Sample> findLatestUpdatedSample();
@@ -46,10 +46,7 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "WHERE version_id = ?1 " +
             "AND id != ?2 " +
             "AND status != 'CREATED' " +
-            "ORDER BY CASE WHEN status = 'UPDATED' THEN 1 " +
-            "              WHEN status = 'DELETED' THEN 2 " +
-            "              WHEN status = 'REJECTED' THEN 3 " +
-            "              ELSE 4 END",
+            "ORDER BY updated_at",
             nativeQuery = true)
     List<Sample> getOtherSamplesOfSameVersion(Long versionId, String sampleId);
 }
