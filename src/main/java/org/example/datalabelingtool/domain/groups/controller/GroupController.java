@@ -46,8 +46,6 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
-    // retrieve user's groups
-
     @PostMapping("/{id}/update-reviewers")
     public ResponseEntity<GroupResponseDto> updateReviewers(@Valid @PathVariable String id,
                                                             @Valid @RequestBody GroupUpdateReviewersRequestDto requestDto) {

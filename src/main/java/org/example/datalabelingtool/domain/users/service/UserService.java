@@ -5,6 +5,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.datalabelingtool.domain.groups.entity.Group;
+import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
 import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
 import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
@@ -19,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final GroupRepository groupRepository;
 
     @Value("${app.admin.code}")
     private String adminCode;
@@ -92,10 +96,13 @@ public class UserService {
     }
 
     private UserResponseDto toResponseDto(User user) {
+        List<Group> groupList = groupRepository.findByUserId(user.getId());
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .role(user.getRole())
+                .groupIds(groupList.stream().map(Group::getId).collect(Collectors.toList()))
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
