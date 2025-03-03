@@ -49,4 +49,25 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "ORDER BY updated_at",
             nativeQuery = true)
     List<Sample> getOtherSamplesOfSameVersion(Long versionId, String sampleId);
+
+    @Query(value = """
+    SELECT sub.*
+    FROM (
+        SELECT s.*, 
+               ROW_NUMBER() OVER (
+                   PARTITION BY JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) 
+                   ORDER BY s.updated_at DESC, s.version_id DESC
+               ) AS rn
+        FROM samples s
+        JOIN user_group ug ON ug.group_id = s.group_id
+        WHERE ug.user_id = ?1
+          AND (
+              s.updated_by = ?1
+              OR (COALESCE(s.updated_by, '') != ?1 AND s.status = 'CREATED')
+          )
+    ) sub
+    WHERE sub.rn = 1
+    ORDER BY JSON_UNQUOTE(JSON_EXTRACT(sub.sample_data, '$.id')) ASC
+    """, nativeQuery = true)
+    List<Sample> findAllByUserId(String userId);
 }
