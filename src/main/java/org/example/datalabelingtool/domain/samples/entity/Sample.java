@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.global.entity.Timestamp;
 
 @Entity
@@ -31,7 +32,11 @@ public class Sample extends Timestamp {
 
     @Column(columnDefinition = "JSON")
     private String sampleData;
-
+  
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private Group group;
+  
     public void updateStatus(SampleStatus status) {
         this.status = status;
     }
