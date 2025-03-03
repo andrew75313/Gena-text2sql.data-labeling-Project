@@ -112,8 +112,26 @@ public class DatasetService {
         }
     }
 
-    public SampleResponseDto getSampleById(String id) {
-        return toSampleResponseDto(findSample(id));
+    public SampleSameVerResponseDto getSampleById(String id) {
+        Sample sample = findSample(id);
+
+        List<SampleResponseDto> otherVersionsSamples = sampleRepository.getOtherSamplesOfSameVersion(sample.getVersionId(), sample.getId())
+                .stream()
+                .map(this::toSampleResponseDto)
+                .collect(Collectors.toList());
+
+        return SampleSameVerResponseDto.builder()
+                .id(sample.getId())
+                .datasetName(sample.getDatasetName())
+                .datasetDescription(sample.getDatasetDescription())
+                .versionId(sample.getVersionId())
+                .status(sample.getStatus())
+                .sampleData(sample.getSampleData())
+                .updatedBy(sample.getUpdatedBy())
+                .createdAt(sample.getCreatedAt())
+                .updatedAt(sample.getUpdatedAt())
+                .otherVersionsSamples(otherVersionsSamples)
+                .build();
     }
 
     public DataResponseDto getLatestUpdatesSamples() {
@@ -124,8 +142,16 @@ public class DatasetService {
         return new DataResponseDto(responseDtoList);
     }
 
+    public DataResponseDto getRequestedSamples() {
+        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
+                .map(this::toSampleResponseDto)
+                .collect(Collectors.toList());
+
+        return new DataResponseDto(responseDtoList);
+    }
+
     @Transactional
-    public SampleUpdateResponseDto updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+    public SampleResponseDto updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
         String username = requestDto.getUsername();
         String sqlQuery = requestDto.getSqlQuery();
         String naturalQuestion = requestDto.getNaturalQuestion();
@@ -202,25 +228,9 @@ public class DatasetService {
 
         sample.getGroup().getSamples().add(updatedSample);
 
-        UserSimpleResponseDto userSimpleResponseDto = UserSimpleResponseDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .role(user.getRole())
-                .build();
-
         Sample responseSample = findSample(updatedSample.getId());
 
-        return SampleUpdateResponseDto.builder()
-                .id(responseSample.getId())
-                .datasetName(responseSample.getDatasetName())
-                .datasetDescription(responseSample.getDatasetDescription())
-                .versionId(responseSample.getVersionId())
-                .status(responseSample.getStatus())
-                .sampleData(responseSample.getSampleData())
-                .updatedBy(userSimpleResponseDto)
-                .createdAt(responseSample.getCreatedAt())
-                .updatedAt(responseSample.getUpdatedAt())
-                .build();
+        return toSampleResponseDto(responseSample);
     }
 
     @Transactional
@@ -262,6 +272,18 @@ public class DatasetService {
     }
 
     private SampleResponseDto toSampleResponseDto(Sample sample) {
+        UserSimpleResponseDto userSimpleResponseDto = null;
+
+        if (sample.getUpdatedBy() != null) {
+            User user = userRepository.findById(sample.getUpdatedBy()).orElse(null);
+
+            userSimpleResponseDto = UserSimpleResponseDto.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .role(user.getRole())
+                    .build();
+        }
+
         return SampleResponseDto.builder()
                 .id(sample.getId())
                 .datasetName(sample.getDatasetName())
@@ -269,17 +291,10 @@ public class DatasetService {
                 .versionId(sample.getVersionId())
                 .status(sample.getStatus())
                 .sampleData(sample.getSampleData())
+                .updatedBy(userSimpleResponseDto)
                 .createdAt(sample.getCreatedAt())
                 .updatedAt(sample.getUpdatedAt())
                 .build();
-    }
-
-    public DataResponseDto getRequestedSamples() {
-        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
-                .map(this::toSampleResponseDto)
-                .collect(Collectors.toList());
-
-        return new DataResponseDto(responseDtoList);
     }
 
     private Sample findSample(String id) {

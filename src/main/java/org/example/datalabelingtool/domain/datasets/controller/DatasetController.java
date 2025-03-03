@@ -40,15 +40,15 @@ public class DatasetController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SampleResponseDto> getSampleById(@Valid @PathVariable String id) {
-        SampleResponseDto responseDto = datasetService.getSampleById(id);
+    public ResponseEntity<SampleSameVerResponseDto> getSampleById(@Valid @PathVariable String id) {
+        SampleSameVerResponseDto responseDto = datasetService.getSampleById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<SampleUpdateResponseDto> updateSample(@Valid @PathVariable String id,
+    public ResponseEntity<SampleResponseDto> updateSample(@Valid @PathVariable String id,
                                                                 @Valid @RequestBody SampleUpdateRequestDto requestDto) throws JsonProcessingException {
-        SampleUpdateResponseDto responseDto = datasetService.updateSample(id, requestDto);
+        SampleResponseDto responseDto = datasetService.updateSample(id, requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

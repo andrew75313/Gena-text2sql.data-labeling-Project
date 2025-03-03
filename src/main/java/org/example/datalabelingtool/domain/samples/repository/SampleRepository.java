@@ -41,4 +41,15 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "WHERE g.id = (SELECT s.group_id FROM samples s WHERE s.id = ?1 LIMIT 1)",
             nativeQuery = true)
     List<User> findUsersAssignedToSample(String sampleId);
+
+    @Query(value = "SELECT * FROM samples " +
+            "WHERE version_id = ?1 " +
+            "AND id != ?2 " +
+            "AND status != 'CREATED' " +
+            "ORDER BY CASE WHEN status = 'UPDATED' THEN 1 " +
+            "              WHEN status = 'DELETED' THEN 2 " +
+            "              WHEN status = 'REJECTED' THEN 3 " +
+            "              ELSE 4 END",
+            nativeQuery = true)
+    List<Sample> getOtherSamplesOfSameVersion(Long versionId, String sampleId);
 }
