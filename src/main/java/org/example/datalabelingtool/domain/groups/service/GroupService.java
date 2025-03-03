@@ -12,7 +12,7 @@ import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,8 +29,8 @@ public class GroupService {
                 .name(requestDto.getGroupName())
                 .description(requestDto.getGroupDescription())
                 .isActive(true)
-                .samples(new ArrayList<>())
-                .reviewers(new ArrayList<>())
+                .samples(new HashSet<>())
+                .reviewers(new HashSet<>())
                 .build();
 
         groupRepository.save(group);
@@ -60,10 +60,10 @@ public class GroupService {
 
         Group group = findGroup(id);
 
-        if(!group.getIsActive()) throw new EntityNotFoundException("Group not found");
+        if (!group.getIsActive()) throw new EntityNotFoundException("Group not found");
 
-        if(newGroupName != null && !newGroupName.isEmpty()) group.updateName(newGroupName);
-        if(newGroupDescription != null && !newGroupDescription.isEmpty()) group.updateDescription(newGroupDescription);
+        if (newGroupName != null && !newGroupName.isEmpty()) group.updateName(newGroupName);
+        if (newGroupDescription != null && !newGroupDescription.isEmpty()) group.updateDescription(newGroupDescription);
 
         return toGroupResponseDto(group);
     }

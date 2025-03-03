@@ -9,7 +9,7 @@ import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.global.entity.Timestamp;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "review_groups")
@@ -29,7 +29,7 @@ public class Group extends Timestamp {
     private Boolean isActive;
 
     @OneToMany(mappedBy = "id")
-    private List<Sample> samples;
+    private Set<Sample> samples;
 
     @ManyToMany
     @JoinTable(
@@ -37,7 +37,7 @@ public class Group extends Timestamp {
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> reviewers;
+    private Set<User> reviewers;
 
     public void updateName(String name) {
         this.name = name;
