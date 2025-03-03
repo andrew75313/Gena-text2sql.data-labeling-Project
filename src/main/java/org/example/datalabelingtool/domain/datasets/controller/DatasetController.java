@@ -5,10 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.service.DatasetService;
-import org.example.datalabelingtool.domain.samples.dto.SampleApproveResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleRejectResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleUpdateRequestDto;
+import org.example.datalabelingtool.domain.samples.dto.*;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.example.datalabelingtool.global.dto.MessageResponseDto;
 import org.springframework.http.HttpStatus;
@@ -49,9 +46,9 @@ public class DatasetController {
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<SampleResponseDto> updateSample(@Valid @PathVariable String id,
-                                                          @Valid @RequestBody SampleUpdateRequestDto requestDto) throws JsonProcessingException {
-        SampleResponseDto responseDto = datasetService.updateSample(id, requestDto);
+    public ResponseEntity<SampleUpdateResponseDto> updateSample(@Valid @PathVariable String id,
+                                                                @Valid @RequestBody SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+        SampleUpdateResponseDto responseDto = datasetService.updateSample(id, requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

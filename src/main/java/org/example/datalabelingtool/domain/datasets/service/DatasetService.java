@@ -8,18 +8,19 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.entity.DatasetColumn;
-import org.example.datalabelingtool.domain.samples.dto.SampleApproveResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleRejectResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
-import org.example.datalabelingtool.domain.samples.dto.SampleUpdateRequestDto;
+import org.example.datalabelingtool.domain.samples.dto.*;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.samples.entity.SampleStatus;
 import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.templates.entity.Template;
 import org.example.datalabelingtool.domain.templates.repository.TemplateRepository;
+import org.example.datalabelingtool.domain.users.dto.UserSimpleResponseDto;
+import org.example.datalabelingtool.domain.users.entity.User;
+import org.example.datalabelingtool.domain.users.repository.UserRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.example.datalabelingtool.global.exception.FileProcessingException;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatasetService {
@@ -37,6 +39,7 @@ public class DatasetService {
     private final SampleRepository sampleRepository;
     private final TemplateRepository templateRepository;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     @Transactional
     public void uploadCsvFile(MultipartFile file, DatasetMetadataDto metadata) throws Exception {
@@ -122,13 +125,28 @@ public class DatasetService {
     }
 
     @Transactional
-    public SampleResponseDto updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+    public SampleUpdateResponseDto updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+        String username = requestDto.getUsername();
         String sqlQuery = requestDto.getSqlQuery();
         String naturalQuestion = requestDto.getNaturalQuestion();
         Boolean passed = requestDto.getPassed();
         Boolean deleted = requestDto.getDeleted();
 
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+
         Sample sample = findSample(id);
+
+        if (sample.getGroup().getId() == null) throw new EntityNotFoundException("Group of Sample not found");
+
+        List<String> userIdList = findUsersAssignedToSample(sample.getId()).stream()
+                .map(User::getId)
+                .toList();
+
+        if (!userIdList.contains(user.getId()))
+            throw new IllegalArgumentException("User is not assigned to Sample");
+
         Long versionId = sample.getVersionId();
         Map<String, Object> sampleDataMap = getSampleDataMap(sample.getId());
         String sampleId = (String) sampleDataMap.get("id");
@@ -143,60 +161,66 @@ public class DatasetService {
             throw new IllegalArgumentException("Passed and Deleted can't be requested at the same time");
 
         if (passed || deleted) {
-            if (sqlQuery != null && naturalQuestion != null)
+            if (!sqlQuery.isEmpty() || !naturalQuestion.isEmpty())
                 throw new IllegalArgumentException("SQL Query or Natural Question can't be requested when Passed or Deleted are requested");
         }
 
-        if (sqlQuery != null) {
+        if (!passed && !deleted && sqlQuery.isEmpty() && naturalQuestion.isEmpty())
+            throw new IllegalArgumentException("No update requested");
+
+        SampleStatus updatedStatus = sample.getStatus();
+
+        if (!sqlQuery.isEmpty()) {
             if (sampleDataMap.containsKey(DatasetColumn.SQL_QUERY.toString())) {
                 sampleDataMap.put(DatasetColumn.SQL_QUERY.toString(), sqlQuery);
-                sample.updateStatus(SampleStatus.REQUESTED_UPDATE);
+                updatedStatus = SampleStatus.REQUESTED_UPDATE;
             }
         }
 
-        if (naturalQuestion != null) {
+        if (!naturalQuestion.isEmpty()) {
             if (sampleDataMap.containsKey(DatasetColumn.NATURAL_QUESTION.toString())) {
                 sampleDataMap.put(DatasetColumn.NATURAL_QUESTION.toString(), naturalQuestion);
-                sample.updateStatus(SampleStatus.REQUESTED_UPDATE);
+                updatedStatus = SampleStatus.REQUESTED_UPDATE;
             }
         }
 
-        sample = Sample.builder()
+        if (passed) updatedStatus = SampleStatus.REQUESTED_UPDATE;
+        if (deleted) updatedStatus = SampleStatus.REQUESTED_DELETE;
+
+        Sample updatedSample = Sample.builder()
                 .id(UUID.randomUUID().toString())
                 .datasetName(sample.getDatasetName())
                 .datasetDescription(sample.getDatasetDescription())
                 .versionId(sample.getVersionId())
+                .status(updatedStatus)
                 .sampleData(objectMapper.writeValueAsString(sampleDataMap))
-                .status(sample.getStatus())
+                .group(sample.getGroup())
+                .updatedBy(user.getId())
                 .build();
 
-        if (passed) sample.updateStatus(SampleStatus.REQUESTED_UPDATE);
-        if (deleted) sample.updateStatus(SampleStatus.REQUESTED_UPDATE);
+        sampleRepository.save(updatedSample);
 
-        sampleRepository.save(sample);
+        sample.getGroup().getSamples().add(updatedSample);
 
-        return toSampleResponseDto(sample);
-    }
-
-    private SampleResponseDto toSampleResponseDto(Sample sample) {
-        return SampleResponseDto.builder()
-                .id(sample.getId())
-                .datasetName(sample.getDatasetName())
-                .datasetDescription(sample.getDatasetDescription())
-                .versionId(sample.getVersionId())
-                .status(sample.getStatus())
-                .sampleData(sample.getSampleData())
-                .createdAt(sample.getCreatedAt())
-                .updatedAt(sample.getUpdatedAt())
+        UserSimpleResponseDto userSimpleResponseDto = UserSimpleResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .role(user.getRole())
                 .build();
-    }
 
-    public DataResponseDto getRequestedSamples() {
-        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
-                .map(this::toSampleResponseDto)
-                .collect(Collectors.toList());
+        Sample responseSample = findSample(updatedSample.getId());
 
-        return new DataResponseDto(responseDtoList);
+        return SampleUpdateResponseDto.builder()
+                .id(responseSample.getId())
+                .datasetName(responseSample.getDatasetName())
+                .datasetDescription(responseSample.getDatasetDescription())
+                .versionId(responseSample.getVersionId())
+                .status(responseSample.getStatus())
+                .sampleData(responseSample.getSampleData())
+                .updatedBy(userSimpleResponseDto)
+                .createdAt(responseSample.getCreatedAt())
+                .updatedAt(responseSample.getUpdatedAt())
+                .build();
     }
 
     @Transactional
@@ -208,7 +232,7 @@ public class DatasetService {
         String sampleId = (String) sampleDataMap.get("id");
 
         List<Sample> sampleList = sampleRepository.findRequestedBySampleIdAndVersionId(sampleId, sample.getVersionId());
-        for(Sample requestedSample : sampleList) {
+        for (Sample requestedSample : sampleList) {
             requestedSample.updateStatus(SampleStatus.REJECTED);
             requestedSample.updateVersionId(requestedSample.getVersionId() + 1);
         }
@@ -231,6 +255,31 @@ public class DatasetService {
                 .status(SampleStatus.REJECTED.toString())
                 .rejectedAt(LocalDateTime.now())
                 .build();
+    }
+
+    private List<User> findUsersAssignedToSample(String id) {
+        return sampleRepository.findUsersAssignedToSample(id);
+    }
+
+    private SampleResponseDto toSampleResponseDto(Sample sample) {
+        return SampleResponseDto.builder()
+                .id(sample.getId())
+                .datasetName(sample.getDatasetName())
+                .datasetDescription(sample.getDatasetDescription())
+                .versionId(sample.getVersionId())
+                .status(sample.getStatus())
+                .sampleData(sample.getSampleData())
+                .createdAt(sample.getCreatedAt())
+                .updatedAt(sample.getUpdatedAt())
+                .build();
+    }
+
+    public DataResponseDto getRequestedSamples() {
+        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
+                .map(this::toSampleResponseDto)
+                .collect(Collectors.toList());
+
+        return new DataResponseDto(responseDtoList);
     }
 
     private Sample findSample(String id) {
