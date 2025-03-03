@@ -7,9 +7,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
-import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
-import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
-import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
+import org.example.datalabelingtool.domain.samples.entity.Sample;
+import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
+import org.example.datalabelingtool.domain.users.dto.*;
 import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.entity.UserRole;
 import org.example.datalabelingtool.domain.users.repository.UserRepository;
@@ -30,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final GroupRepository groupRepository;
+    private final SampleRepository sampleRepository;
 
     @Value("${app.admin.code}")
     private String adminCode;
@@ -80,8 +82,8 @@ public class UserService {
                 () -> new EntityNotFoundException("User not found")
         );
 
-        if(StringUtils.hasText(newUsername)) user.updateUsername(newUsername);
-        if(StringUtils.hasText(newPassword)) user.updatePassword(passwordEncoder.encode(newPassword));
+        if (StringUtils.hasText(newUsername)) user.updateUsername(newUsername);
+        if (StringUtils.hasText(newPassword)) user.updatePassword(passwordEncoder.encode(newPassword));
 
         return toResponseDto(user);
     }
@@ -95,6 +97,28 @@ public class UserService {
         user.updateIsActive(false);
     }
 
+    public UserSampleResponseDto getSamplesByUserId(String id) {
+        User user = userRepository.findByIdAndIsActiveTrue(id).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+
+        List<Group> groupList = groupRepository.findByUserId(user.getId());
+
+        List<SampleResponseDto> sampleResponseDtoList = sampleRepository.findAllByUserId(id).stream()
+                .map(this::toSampleResponseDto)
+                .toList();
+
+        return UserSampleResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .role(user.getRole())
+                .groupIds(groupList.stream().map(Group::getId).collect(Collectors.toList()))
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .samples(sampleResponseDtoList)
+                .build();
+    }
+
     private UserResponseDto toResponseDto(User user) {
         List<Group> groupList = groupRepository.findByUserId(user.getId());
 
@@ -105,6 +129,32 @@ public class UserService {
                 .groupIds(groupList.stream().map(Group::getId).collect(Collectors.toList()))
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    private SampleResponseDto toSampleResponseDto(Sample sample) {
+        UserSimpleResponseDto userSimpleResponseDto = null;
+
+        if (sample.getUpdatedBy() != null) {
+            User user = userRepository.findById(sample.getUpdatedBy()).orElse(null);
+
+            userSimpleResponseDto = UserSimpleResponseDto.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .role(user.getRole())
+                    .build();
+        }
+
+        return SampleResponseDto.builder()
+                .id(sample.getId())
+                .datasetName(sample.getDatasetName())
+                .datasetDescription(sample.getDatasetDescription())
+                .versionId(sample.getVersionId())
+                .status(sample.getStatus())
+                .sampleData(sample.getSampleData())
+                .updatedBy(userSimpleResponseDto)
+                .createdAt(sample.getCreatedAt())
+                .updatedAt(sample.getUpdatedAt())
                 .build();
     }
 }

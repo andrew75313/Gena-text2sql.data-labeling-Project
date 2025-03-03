@@ -32,16 +32,30 @@ public class Sample extends Timestamp {
 
     @Column(columnDefinition = "JSON")
     private String sampleData;
-  
+
+    private String updatedBy;
+
     @ManyToOne
     @JoinColumn(name = "group_id")
     private Group group;
-  
+
     public void updateStatus(SampleStatus status) {
         this.status = status;
     }
 
     public void updateVersionId(Long versionId) {
         this.versionId = versionId;
+    }
+
+    public void updateGroup(Group newGroup) {
+        if (this.group != null) {
+            this.group.getSamples().remove(this);
+        }
+
+        this.group = newGroup;
+
+        if (newGroup != null) {
+            newGroup.getSamples().add(this);
+        }
     }
 }

@@ -28,7 +28,7 @@ public class Group extends Timestamp {
     @Column(nullable = false)
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "id")
+    @OneToMany(mappedBy = "group")
     private Set<Sample> samples;
 
     @ManyToMany

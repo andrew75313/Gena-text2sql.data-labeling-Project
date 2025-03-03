@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.dto.UserCreateRequestDto;
 import org.example.datalabelingtool.domain.users.dto.UserResponseDto;
+import org.example.datalabelingtool.domain.users.dto.UserSampleResponseDto;
 import org.example.datalabelingtool.domain.users.dto.UserUpdateRequestDto;
 import org.example.datalabelingtool.domain.users.service.UserService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
@@ -27,6 +28,12 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@Valid @PathVariable String id) {
         UserResponseDto responseDto = userService.getUserById(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/samples")
+    public ResponseEntity<UserSampleResponseDto> getSamplesByUserId(@Valid @PathVariable String id) {
+        UserSampleResponseDto responseDto = userService.getSamplesByUserId(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

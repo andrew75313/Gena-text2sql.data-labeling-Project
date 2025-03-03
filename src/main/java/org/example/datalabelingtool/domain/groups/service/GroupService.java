@@ -104,11 +104,13 @@ public class GroupService {
 
         for(String sampleId : requestDto.getAddSampleIds()) {
             Sample sample = findSample(sampleId);
+            sample.updateGroup(group);
             group.addSample(sample);
         }
 
         for(String sampleId : requestDto.getRemoveSampleIds()) {
             Sample sample = findSample(sampleId);
+            sample.updateGroup(null);
             group.removeSample(sample);
         }
 
