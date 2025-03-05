@@ -2,6 +2,7 @@ package org.example.datalabelingtool.domain.samples.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.samples.entity.SampleStatus;
 import org.example.datalabelingtool.domain.users.dto.UserSimpleResponseDto;
 
@@ -18,6 +19,7 @@ public class SampleSameVerResponseDto {
     private SampleStatus status;
     private String sampleData;
     private String updatedBy;
+    private List<LabelResponseDto> labels;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SampleResponseDto> otherVersionsSamples;

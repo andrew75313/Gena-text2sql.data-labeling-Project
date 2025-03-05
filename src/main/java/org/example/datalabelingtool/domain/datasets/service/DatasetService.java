@@ -92,6 +92,7 @@ public class DatasetService {
                         .versionId(1L)
                         .status(SampleStatus.CREATED)
                         .sampleData(sampleData.toString())
+                        .labels(new ArrayList<>())
                         .build();
 
                 sampleList.add(sample);
@@ -160,6 +161,20 @@ public class DatasetService {
                 .map(this::toSampleResponseDto)
                 .collect(Collectors.toList());
 
+        List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
+        for (String labelId : sample.getLabels()) {
+            Label foundLabel = labelRepository.findById(labelId).orElse(null);
+            if (foundLabel == null) {
+                continue;
+            } else {
+                LabelResponseDto labelResponseDto = LabelResponseDto.builder()
+                        .labelId(foundLabel.getId())
+                        .labelName(foundLabel.getName())
+                        .build();
+                labelResponseDtoList.add(labelResponseDto);
+            }
+        }
+
         return SampleSameVerResponseDto.builder()
                 .id(sample.getId())
                 .datasetName(sample.getDatasetName())
@@ -167,6 +182,7 @@ public class DatasetService {
                 .versionId(sample.getVersionId())
                 .status(sample.getStatus())
                 .sampleData(sample.getSampleData())
+                .labels(labelResponseDtoList)
                 .updatedBy(sample.getUpdatedBy())
                 .createdAt(sample.getCreatedAt())
                 .updatedAt(sample.getUpdatedAt())
