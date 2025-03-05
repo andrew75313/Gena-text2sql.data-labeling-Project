@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.entity.DatasetColumn;
+import org.example.datalabelingtool.domain.labels.entity.Label;
+import org.example.datalabelingtool.domain.labels.repository.LabelRepository;
 import org.example.datalabelingtool.domain.samples.dto.*;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.samples.entity.SampleStatus;
@@ -40,6 +42,7 @@ public class DatasetService {
     private final TemplateRepository templateRepository;
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
+    private final LabelRepository labelRepository;
 
     @Transactional
     public void uploadCsvFile(MultipartFile file, DatasetMetadataDto metadata) throws Exception {
@@ -155,6 +158,7 @@ public class DatasetService {
         String username = requestDto.getUsername();
         String sqlQuery = requestDto.getSqlQuery();
         String naturalQuestion = requestDto.getNaturalQuestion();
+        List<String> labels = requestDto.getLabels();
         Boolean passed = requestDto.getPassed();
         Boolean deleted = requestDto.getDeleted();
 
@@ -187,11 +191,11 @@ public class DatasetService {
             throw new IllegalArgumentException("Passed and Deleted can't be requested at the same time");
 
         if (passed || deleted) {
-            if (!sqlQuery.isEmpty() || !naturalQuestion.isEmpty())
+            if (!sqlQuery.isEmpty() || !naturalQuestion.isEmpty() || !labels.isEmpty())
                 throw new IllegalArgumentException("SQL Query or Natural Question can't be requested when Passed or Deleted are requested");
         }
 
-        if (!passed && !deleted && sqlQuery.isEmpty() && naturalQuestion.isEmpty())
+        if (!passed && !deleted && sqlQuery.isEmpty() && naturalQuestion.isEmpty() && labels.isEmpty())
             throw new IllegalArgumentException("No update requested");
 
         SampleStatus updatedStatus = sample.getStatus();
@@ -213,6 +217,18 @@ public class DatasetService {
         if (passed) updatedStatus = SampleStatus.REQUESTED_UPDATE;
         if (deleted) updatedStatus = SampleStatus.REQUESTED_DELETE;
 
+        List<String> updatedLabels = new ArrayList<>();
+        for (String labelId : labels) {
+            Label foundLabel = labelRepository.findById(labelId).orElse(null);
+            if (foundLabel == null) {
+                continue;
+            } else {
+                updatedLabels.add(foundLabel.getId());
+            }
+        }
+
+        log.info(updatedLabels.toString());
+
         Sample updatedSample = Sample.builder()
                 .id(UUID.randomUUID().toString())
                 .datasetName(sample.getDatasetName())
@@ -222,6 +238,7 @@ public class DatasetService {
                 .sampleData(objectMapper.writeValueAsString(sampleDataMap))
                 .group(sample.getGroup())
                 .updatedBy(user.getId())
+                .labels(updatedLabels)
                 .build();
 
         sampleRepository.save(updatedSample);
