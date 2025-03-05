@@ -47,6 +47,15 @@ public class DatasetController {
         return new ResponseEntity<>(new MessageResponseDto("Dataset uploaded successfully"), HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Download CSV file",
+            description = "Downloads a CSV file associated with a specific dataset.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "CSV file downloaded successfully",
+                            content = @Content(mediaType = "text/csv")),
+                    @ApiResponse(responseCode = "404", description = "Dataset not found")
+            }
+    )
     @GetMapping("/download/{dataset_name}")
     public ResponseEntity<InputStreamResource> downloadCsvFile(@PathVariable(name = "dataset_name") String datasetName) {
         InputStreamResource resource = datasetService.getCsvFile(datasetName);
@@ -56,6 +65,7 @@ public class DatasetController {
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(resource);
     }
+
 
     @Operation(
             summary = "Get latest updated samples",
