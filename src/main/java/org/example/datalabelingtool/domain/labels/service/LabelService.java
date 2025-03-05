@@ -50,7 +50,7 @@ public class LabelService {
     }
 
     public DataResponseDto getAllLabels() {
-        List<Label> labelList = labelRepository.findAll();
+        List<Label> labelList = labelRepository.findByIsActiveTrue();
         return new DataResponseDto(labelList.stream().map(this::toLabelResponseDto).toList());
     }
 
