@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.global.entity.Timestamp;
+import org.example.datalabelingtool.global.util.ListToJsonConverter;
+
+import java.util.List;
 
 @Entity
 @Table(name = "samples")
@@ -33,6 +36,10 @@ public class Sample extends Timestamp {
     @Column(columnDefinition = "JSON")
     private String sampleData;
 
+    @Column(columnDefinition = "JSON")
+    @Convert(converter = ListToJsonConverter.class)
+    private List<String> labels;
+
     private String updatedBy;
 
     @ManyToOne
@@ -45,6 +52,10 @@ public class Sample extends Timestamp {
 
     public void updateVersionId(Long versionId) {
         this.versionId = versionId;
+    }
+
+    public void updateLabels (List<String> labels) {
+        this.labels = labels;
     }
 
     public void updateGroup(Group newGroup) {
