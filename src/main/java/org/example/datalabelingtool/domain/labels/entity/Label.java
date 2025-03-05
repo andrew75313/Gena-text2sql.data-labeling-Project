@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import org.example.datalabelingtool.global.entity.Timestamp;
 
 @Entity
-@Table(name = "lables")
+@Table(name = "labels")
 @Getter
 @Builder
 @NoArgsConstructor

@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface LabelRepository extends JpaRepository<Label, String> {
     Optional<Label> findByName(String labelName);
 
-    @Query(value = "SELECT * FROM label WHERE is_active = true", nativeQuery = true)
+    @Query(value = "SELECT * FROM labels WHERE is_active = true", nativeQuery = true)
     List<Label> findByIsActiveTrue();
 }
