@@ -8,10 +8,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.entity.DatasetColumn;
+import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.entity.Label;
 import org.example.datalabelingtool.domain.labels.repository.LabelRepository;
 import org.example.datalabelingtool.domain.samples.dto.*;
@@ -33,7 +33,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatasetService {
@@ -227,8 +226,6 @@ public class DatasetService {
             }
         }
 
-        log.info(updatedLabels.toString());
-
         Sample updatedSample = Sample.builder()
                 .id(UUID.randomUUID().toString())
                 .datasetName(sample.getDatasetName())
@@ -301,6 +298,16 @@ public class DatasetService {
                     .build();
         }
 
+        List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
+        for(String labelId : sample.getLabels()) {
+            Label label = labelRepository.findById(labelId).orElse(null);
+            LabelResponseDto labelResponseDto = LabelResponseDto.builder()
+                    .labelId(label.getId())
+                    .labelName(label.getName())
+                    .build();
+            labelResponseDtoList.add(labelResponseDto);
+        }
+
         return SampleResponseDto.builder()
                 .id(sample.getId())
                 .datasetName(sample.getDatasetName())
@@ -309,6 +316,7 @@ public class DatasetService {
                 .status(sample.getStatus())
                 .sampleData(sample.getSampleData())
                 .updatedBy(userSimpleResponseDto)
+                .labels(labelResponseDtoList)
                 .createdAt(sample.getCreatedAt())
                 .updatedAt(sample.getUpdatedAt())
                 .build();
