@@ -19,3 +19,11 @@ spring:
 app:
   admin:
     code: ${ADMIN_CODE}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui/index.html
