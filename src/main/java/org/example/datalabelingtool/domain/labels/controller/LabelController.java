@@ -2,7 +2,7 @@ package org.example.datalabelingtool.domain.labels.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
+import org.example.datalabelingtool.domain.labels.dto.LabelListRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
 import org.example.datalabelingtool.domain.labels.service.LabelService;
@@ -19,7 +19,7 @@ public class LabelController {
     private final LabelService labelService;
 
     @PostMapping("")
-    public ResponseEntity<DataResponseDto> createLabels(@Valid @RequestBody LabelCreateRequestDto requestDto) {
+    public ResponseEntity<DataResponseDto> createLabels(@Valid @RequestBody LabelListRequestDto requestDto) {
         DataResponseDto dataResponseDto = labelService.createLabels(requestDto);
         return new ResponseEntity<>(dataResponseDto, HttpStatus.CREATED);
     }
@@ -43,5 +43,9 @@ public class LabelController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    // delete labels
+    @DeleteMapping("")
+    public ResponseEntity<?> deleteLabels(@Valid @RequestBody LabelListRequestDto requestDto) {
+        labelService.deleteLabels(requestDto);
+        return ResponseEntity.noContent().build();
+    }
 }

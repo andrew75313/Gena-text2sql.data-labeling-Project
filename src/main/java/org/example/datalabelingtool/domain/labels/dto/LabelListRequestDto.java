@@ -5,6 +5,6 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class LabelCreateRequestDto {
+public class LabelListRequestDto {
     private List<String> labelNames;
 }

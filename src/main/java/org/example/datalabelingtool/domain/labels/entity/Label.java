@@ -24,7 +24,11 @@ public class Label extends Timestamp {
     @Column(nullable = false)
     private Boolean isActive;
 
-    public void updateLabel(String name) {
+    public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateStatus(Boolean status) {
+        this.isActive = status;
     }
 }

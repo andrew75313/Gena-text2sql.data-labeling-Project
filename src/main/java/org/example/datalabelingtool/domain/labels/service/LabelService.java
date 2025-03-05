@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
+import org.example.datalabelingtool.domain.labels.dto.LabelListRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
 import org.example.datalabelingtool.domain.labels.entity.Label;
@@ -22,7 +22,7 @@ public class LabelService {
 
     private final LabelRepository labelRepository;
 
-    public DataResponseDto createLabels(@Valid LabelCreateRequestDto requestDto) {
+    public DataResponseDto createLabels(@Valid LabelListRequestDto requestDto) {
         List<Label> labelList = new ArrayList<>();
 
         for(String labelName : requestDto.getLabelNames()) {
@@ -57,8 +57,21 @@ public class LabelService {
     @Transactional
     public LabelResponseDto updateLabel(String id, LabelUpdateRequestDto requestDto) {
         Label label = findLabel(id);
-        label.updateLabel(formatLabel(requestDto.getNewLabelName()));
+        label.updateName(formatLabel(requestDto.getNewLabelName()));
         return toLabelResponseDto(label);
+    }
+
+    @Transactional
+    public void deleteLabels(LabelListRequestDto requestDto) {
+        List<Label> labelList = new ArrayList<>();
+
+        for(String labelName : requestDto.getLabelNames()) {
+            Label label = labelRepository.findByName(labelName).orElseThrow(
+                    ()-> new EntityNotFoundException("Label not found")
+            );
+
+            label.updateStatus(Boolean.FALSE);
+        }
     }
 
     private Label findLabel(String id) {
