@@ -1,5 +1,6 @@
 package org.example.datalabelingtool.domain.labels.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
@@ -38,6 +39,19 @@ public class LabelService {
 
         labelRepository.saveAll(labelList);
 
+        return new DataResponseDto(labelList.stream().map(this::toLabelResponseDto).toList());
+    }
+
+    public LabelResponseDto getLabelById(String id) {
+        Label label = labelRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Label not found")
+        );
+
+        return toLabelResponseDto(label);
+    }
+
+    public DataResponseDto getAllLabels() {
+        List<Label> labelList = labelRepository.findAll();
         return new DataResponseDto(labelList.stream().map(this::toLabelResponseDto).toList());
     }
 

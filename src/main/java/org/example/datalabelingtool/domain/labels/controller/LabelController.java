@@ -3,14 +3,12 @@ package org.example.datalabelingtool.domain.labels.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
+import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.service.LabelService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +23,17 @@ public class LabelController {
         return new ResponseEntity<>(dataResponseDto, HttpStatus.CREATED);
     }
 
-    // retrieve all labels
+    @GetMapping("/{id}")
+    public ResponseEntity<LabelResponseDto> getLabelById(@Valid @PathVariable String id) {
+        LabelResponseDto responseDto = labelService.getLabelById(id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<DataResponseDto> getAllLabels() {
+        DataResponseDto dataResponseDto = labelService.getAllLabels();
+        return new ResponseEntity<>(dataResponseDto, HttpStatus.OK);
+    }
 
     // update label
 
