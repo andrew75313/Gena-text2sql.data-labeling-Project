@@ -2,6 +2,7 @@ package org.example.datalabelingtool.domain.labels.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.datalabelingtool.domain.labels.dto.LabelDataResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelListRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
@@ -25,8 +26,8 @@ public class LabelController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LabelResponseDto> getLabelById(@Valid @PathVariable String id) {
-        LabelResponseDto responseDto = labelService.getLabelById(id);
+    public ResponseEntity<LabelDataResponseDto> getLabelById(@Valid @PathVariable String id) {
+        LabelDataResponseDto responseDto = labelService.getLabelById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

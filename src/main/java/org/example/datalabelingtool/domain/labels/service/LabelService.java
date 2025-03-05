@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.datalabelingtool.domain.labels.dto.LabelDataResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelListRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
@@ -44,9 +45,15 @@ public class LabelService {
         return new DataResponseDto(labelList.stream().map(this::toLabelResponseDto).toList());
     }
 
-    public LabelResponseDto getLabelById(String id) {
+    public LabelDataResponseDto getLabelById(String id) {
         Label label = findLabel(id);
-        return toLabelResponseDto(label);
+        return LabelDataResponseDto.builder()
+                .labelId(label.getId())
+                .labelName(label.getName())
+                .isActive(label.getIsActive())
+                .createdAt(label.getCreatedAt())
+                .updatedAt(label.getUpdatedAt())
+                .build();
     }
 
     public DataResponseDto getAllLabels() {
