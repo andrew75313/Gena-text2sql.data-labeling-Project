@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/lables")
+@RequestMapping("/api/labels")
 public class LabelController {
 
     private final LabelService labelService;
