@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
+import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
 import org.example.datalabelingtool.domain.labels.service.LabelService;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,12 @@ public class LabelController {
         return new ResponseEntity<>(dataResponseDto, HttpStatus.OK);
     }
 
-    // update label
+    @PutMapping("/{id}")
+    public ResponseEntity<LabelResponseDto> updateLabel(@Valid @PathVariable String id,
+                                                       @Valid @RequestBody LabelUpdateRequestDto requestDto) {
+        LabelResponseDto responseDto = labelService.updateLabel(id, requestDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
 
     // delete labels
 }

@@ -1,10 +1,12 @@
 package org.example.datalabelingtool.domain.labels.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.labels.dto.LabelCreateRequestDto;
 import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
+import org.example.datalabelingtool.domain.labels.dto.LabelUpdateRequestDto;
 import org.example.datalabelingtool.domain.labels.entity.Label;
 import org.example.datalabelingtool.domain.labels.repository.LabelRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
@@ -43,16 +45,26 @@ public class LabelService {
     }
 
     public LabelResponseDto getLabelById(String id) {
-        Label label = labelRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Label not found")
-        );
-
+        Label label = findLabel(id);
         return toLabelResponseDto(label);
     }
 
     public DataResponseDto getAllLabels() {
         List<Label> labelList = labelRepository.findAll();
         return new DataResponseDto(labelList.stream().map(this::toLabelResponseDto).toList());
+    }
+
+    @Transactional
+    public LabelResponseDto updateLabel(String id, LabelUpdateRequestDto requestDto) {
+        Label label = findLabel(id);
+        label.updateLabel(formatLabel(requestDto.getNewLabelName()));
+        return toLabelResponseDto(label);
+    }
+
+    private Label findLabel(String id) {
+        return labelRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Label not found")
+        );
     }
 
     private String formatLabel(String labelName) {
