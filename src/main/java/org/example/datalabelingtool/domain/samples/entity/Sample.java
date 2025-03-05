@@ -33,7 +33,7 @@ public class Sample extends Timestamp {
     @Column(nullable = false)
     private SampleStatus status;
 
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "LONGTEXT")
     private String sampleData;
 
     @Column(columnDefinition = "JSON")

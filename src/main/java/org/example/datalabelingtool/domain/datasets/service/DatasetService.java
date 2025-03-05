@@ -52,6 +52,8 @@ public class DatasetService {
         String datasetName = metadata.getDatasetName();
         String datasetDescription = metadata.getDatasetDescription();
 
+        if(!sampleRepository.findByDatasetName(datasetName).isEmpty()) throw new IllegalArgumentException("Dataset already exists");
+
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             String[] columns = csvReader.readNext();
 
@@ -83,7 +85,6 @@ public class DatasetService {
                 for (int i = 0; i < columns.length; i++) {
                     sampleData.addProperty(columns[i], nextRecord[i]);
                 }
-
                 Sample sample = Sample.builder()
                         .id(UUID.randomUUID().toString())
                         .datasetName(datasetName)
