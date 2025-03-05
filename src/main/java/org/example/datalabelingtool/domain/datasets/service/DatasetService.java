@@ -3,7 +3,9 @@ package org.example.datalabelingtool.domain.datasets.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -25,10 +27,12 @@ import org.example.datalabelingtool.domain.users.entity.User;
 import org.example.datalabelingtool.domain.users.repository.UserRepository;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.example.datalabelingtool.global.exception.FileProcessingException;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -111,6 +115,39 @@ public class DatasetService {
 
         } catch (Exception e) {
             throw new FileUploadException(e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public InputStreamResource getCsvFile(String datasetName) {
+        List<Sample> samples = sampleRepository.findLatestUpdatedSampleOfDataset(datasetName);
+
+        if (samples.isEmpty()) throw new FileProcessingException("No data found for dataset");
+
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            CSVWriter csvWriter = new CSVWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+
+            JsonObject firstSampleData = JsonParser.parseString(samples.get(0).getSampleData()).getAsJsonObject();
+            String[] headers = firstSampleData.keySet().toArray(new String[0]);
+            csvWriter.writeNext(headers);
+
+            for (Sample sample : samples) {
+                JsonObject sampleData = JsonParser.parseString(sample.getSampleData()).getAsJsonObject();
+
+                String[] row = Arrays.stream(headers)
+                        .map(header -> sampleData.has(header) ? sampleData.get(header).getAsString() : "")
+                        .toArray(String[]::new);
+
+                csvWriter.writeNext(row);
+            }
+
+            csvWriter.close();
+
+            return new InputStreamResource(new ByteArrayInputStream(out.toByteArray()));
+
+        } catch (Exception e) {
+            throw new FileProcessingException("Error generating CSV file");
         }
     }
 
@@ -333,4 +370,6 @@ public class DatasetService {
         Map<String, Object> sampleDataMap = objectMapper.readValue(foundSample.getSampleData(), Map.class);
         return sampleDataMap;
     }
+
+
 }

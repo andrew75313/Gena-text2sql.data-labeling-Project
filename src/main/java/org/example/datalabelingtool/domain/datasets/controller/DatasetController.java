@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
@@ -13,6 +14,8 @@ import org.example.datalabelingtool.domain.datasets.service.DatasetService;
 import org.example.datalabelingtool.domain.samples.dto.*;
 import org.example.datalabelingtool.global.dto.DataResponseDto;
 import org.example.datalabelingtool.global.dto.MessageResponseDto;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +47,15 @@ public class DatasetController {
         return new ResponseEntity<>(new MessageResponseDto("Dataset uploaded successfully"), HttpStatus.CREATED);
     }
 
+    @GetMapping("/download/{dataset_name}")
+    public ResponseEntity<InputStreamResource> downloadCsvFile(@PathVariable(name = "dataset_name") String datasetName) {
+        InputStreamResource resource = datasetService.getCsvFile(datasetName);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + datasetName.replace(" ", "_") + ".csv")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(resource);
+    }
 
     @Operation(
             summary = "Get latest updated samples",
