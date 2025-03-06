@@ -24,9 +24,9 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "LIMIT 1", nativeQuery = true)
     Optional<Sample> findLatestBySampleId(String sampleId);
 
-    @Query(value = "SELECT s.* FROM samples s " +
-            "WHERE s.status LIKE 'REQUESTED_%' " +
-            "ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) AS UNSIGNED) ASC, s.version_id ASC", nativeQuery = true)
+    @Query("SELECT s FROM Sample s " +
+            "WHERE s.status IN ('REQUESTED_UPDATE', 'REQUESTED_DELETE')" +
+            "ORDER BY s.versionId ASC")
     List<Sample> findRequestedSample();
 
     @Query(value = "SELECT s.* FROM samples s " +
