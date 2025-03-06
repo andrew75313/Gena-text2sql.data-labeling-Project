@@ -43,13 +43,12 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             nativeQuery = true)
     List<User> findUsersAssignedToSample(String sampleId);
 
-    @Query(value = "SELECT * FROM samples " +
-            "WHERE version_id = ?1 " +
-            "AND id != ?2 " +
-            "AND status != 'CREATED' " +
-            "ORDER BY updated_at",
-            nativeQuery = true)
-    List<Sample> getOtherSamplesOfSameVersion(Long versionId, String sampleId);
+    @Query("SELECT s FROM Sample s " +
+            "WHERE s.versionId = :versionId " +
+            "AND s.id = :sampleDataId " +
+            "AND s.status != 'CREATED' " +
+            "ORDER BY s.updatedAt")
+    List<Sample> getOtherSamplesOfSameVersion(Long versionId, Long sampleDataId);
 
     @Query(value = """
     SELECT sub.*

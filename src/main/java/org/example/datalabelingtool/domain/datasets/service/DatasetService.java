@@ -159,7 +159,7 @@ public class DatasetService {
     public SampleSameVerResponseDto getSampleById(String id) {
         Sample sample = findSample(id);
 
-        List<SampleResponseDto> otherVersionsSamples = sampleRepository.getOtherSamplesOfSameVersion(sample.getVersionId(), sample.getId())
+        List<SampleResponseDto> otherVersionsSamples = sampleRepository.getOtherSamplesOfSameVersion(sample.getVersionId(), sample.getSampleDataId())
                 .stream()
                 .map(this::toSampleResponseDto)
                 .collect(Collectors.toList());
@@ -180,11 +180,13 @@ public class DatasetService {
 
         return SampleSameVerResponseDto.builder()
                 .id(sample.getId())
+                .sampleId(sample.getSampleDataId())
+                .naturalQuestion(sample.getNaturalQuestion())
+                .sqlQuery(sample.getSqlQuery())
                 .datasetName(sample.getDatasetName())
                 .datasetDescription(sample.getDatasetDescription())
                 .versionId(sample.getVersionId())
                 .status(sample.getStatus())
-                .sampleData(sample.getSampleData())
                 .labels(labelResponseDtoList)
                 .updatedBy(sample.getUpdatedBy())
                 .createdAt(sample.getCreatedAt())
