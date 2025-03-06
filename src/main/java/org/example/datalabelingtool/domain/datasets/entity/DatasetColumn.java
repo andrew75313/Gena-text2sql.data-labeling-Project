@@ -4,7 +4,8 @@ public enum DatasetColumn {
     SQL_QUERY("sql_query"),
     NATURAL_QUESTION("natural_question"),
     NO_SQL_TEMPLATE("no_sql_template"),
-    SQL_TEMPLATE("sql_template");
+    SQL_TEMPLATE("sql_template"),
+    SAMPLE_ID("id");
 
     private final String columnName;
 

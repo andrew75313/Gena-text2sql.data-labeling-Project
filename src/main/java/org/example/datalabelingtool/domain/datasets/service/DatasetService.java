@@ -69,7 +69,7 @@ public class DatasetService {
                 }
             }
 
-            if (columnIndexMap.size() != 4)
+            if (columnIndexMap.size() < 4)
                 throw new FileProcessingException("CSV file must contain 4 columns : sql_query, natural_question, no_template, sql_template");
 
             Integer noTemplateIndex = columnIndexMap.get(DatasetColumn.NO_SQL_TEMPLATE.toString());
@@ -87,6 +87,9 @@ public class DatasetService {
                 }
                 Sample sample = Sample.builder()
                         .id(UUID.randomUUID().toString())
+                        .sampleDataId(sampleData.get(DatasetColumn.SAMPLE_ID.toString()).getAsLong())
+                        .naturalQuestion(sampleData.get(DatasetColumn.NATURAL_QUESTION.toString()).getAsString())
+                        .sqlQuery(sampleData.get(DatasetColumn.SQL_QUERY.toString()).getAsString())
                         .datasetName(datasetName)
                         .datasetDescription(datasetDescription)
                         .versionId(1L)

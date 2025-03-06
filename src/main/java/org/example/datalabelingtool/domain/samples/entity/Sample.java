@@ -22,6 +22,15 @@ public class Sample extends Timestamp {
     private String id;
 
     @Column(nullable = false)
+    private Long sampleDataId;
+
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
+    private String naturalQuestion;
+
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
+    private String sqlQuery;
+
+    @Column(nullable = false)
     private String datasetName;
 
     private String datasetDescription;
@@ -56,6 +65,14 @@ public class Sample extends Timestamp {
 
     public void updateLabels (List<String> labels) {
         this.labels = labels;
+    }
+
+    public void updateNaturalQuestion(String naturalQuestion) {
+        this.naturalQuestion = naturalQuestion;
+    }
+
+    public void updateSqlQuery(String sqlQuery) {
+        this.sqlQuery = sqlQuery;
     }
 
     public void updateGroup(Group newGroup) {
