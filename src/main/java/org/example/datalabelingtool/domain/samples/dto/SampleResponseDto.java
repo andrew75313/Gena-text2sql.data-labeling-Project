@@ -13,11 +13,13 @@ import java.util.List;
 @Builder
 public class SampleResponseDto {
     private String id;
+    private Long sampleId;
+    private String naturalQuestion;
+    private String sqlQuery;
     private String datasetName;
     private String datasetDescription;
     private Long versionId;
     private SampleStatus status;
-    private String sampleData;
     private List<LabelResponseDto> labels;
     private UserSimpleResponseDto updatedBy;
     private LocalDateTime createdAt;

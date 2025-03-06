@@ -11,10 +11,10 @@ import java.util.Optional;
 
 public interface SampleRepository extends JpaRepository<Sample, String> {
 
-    @Query(value = "SELECT s.* FROM samples s " +
-            "WHERE s.status IN ('UPDATED','DELETED','CREATED') " +
-            "AND s.version_id = (SELECT MAX(s2.version_id) FROM samples s2 WHERE JSON_UNQUOTE(JSON_EXTRACT(s2.sample_data, '$.id')) = JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id'))) " +
-            "ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) AS UNSIGNED) ASC", nativeQuery = true)
+    @Query(value = "SELECT s FROM Sample s " +
+            "WHERE s.status IN ('UPDATED', 'DELETED', 'CREATED') " +
+            "AND s.versionId = (SELECT MAX(s2.versionId) FROM Sample s2 WHERE s2.sampleDataId = s.sampleDataId) " +
+            "ORDER BY s.sampleDataId ASC")
     List<Sample> findLatestUpdatedSample();
 
     @Query(value = "SELECT s.* FROM samples s " +

@@ -170,7 +170,6 @@ public class UserService {
                 .datasetDescription(sample.getDatasetDescription())
                 .versionId(sample.getVersionId())
                 .status(sample.getStatus())
-                .sampleData(sample.getSampleData())
                 .updatedBy(userSimpleResponseDto)
                 .labels(labelResponseDtoList)
                 .createdAt(sample.getCreatedAt())
