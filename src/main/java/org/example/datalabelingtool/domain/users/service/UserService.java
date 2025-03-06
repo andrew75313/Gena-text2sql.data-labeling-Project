@@ -5,8 +5,12 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.datalabelingtool.domain.groups.entity.Group;
 import org.example.datalabelingtool.domain.groups.repository.GroupRepository;
+import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
+import org.example.datalabelingtool.domain.labels.entity.Label;
+import org.example.datalabelingtool.domain.labels.repository.LabelRepository;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
@@ -20,10 +24,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -32,6 +38,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final GroupRepository groupRepository;
     private final SampleRepository sampleRepository;
+    private final LabelRepository labelRepository;
 
     @Value("${app.admin.code}")
     private String adminCode;
@@ -145,6 +152,18 @@ public class UserService {
                     .build();
         }
 
+        List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
+        for(String labelId : sample.getLabels()) {
+            Label label = labelRepository.findById(labelId).orElse(null);
+            log.info(label.getName());
+            if(label == null || !label.getIsActive()) continue;
+            LabelResponseDto labelResponseDto = LabelResponseDto.builder()
+                    .labelId(label.getId())
+                    .labelName(label.getName())
+                    .build();
+            labelResponseDtoList.add(labelResponseDto);
+        }
+
         return SampleResponseDto.builder()
                 .id(sample.getId())
                 .datasetName(sample.getDatasetName())
@@ -153,6 +172,7 @@ public class UserService {
                 .status(sample.getStatus())
                 .sampleData(sample.getSampleData())
                 .updatedBy(userSimpleResponseDto)
+                .labels(labelResponseDtoList)
                 .createdAt(sample.getCreatedAt())
                 .updatedAt(sample.getUpdatedAt())
                 .build();

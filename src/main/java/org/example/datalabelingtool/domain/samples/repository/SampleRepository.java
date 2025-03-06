@@ -68,9 +68,10 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
           )
     ) sub
     WHERE sub.rn = 1
-    ORDER BY JCAST(JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) AS UNSIGNED) ASC
+    ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(sub.sample_data, '$.id')) AS UNSIGNED) ASC
     """, nativeQuery = true)
     List<Sample> findAllByUserId(String userId);
+
 
     @Query(value = "SELECT s.* FROM samples s " +
             "WHERE s.status IN ('UPDATED','DELETED','CREATED') " +
