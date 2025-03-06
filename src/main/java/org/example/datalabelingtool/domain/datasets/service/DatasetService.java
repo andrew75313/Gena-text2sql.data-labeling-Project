@@ -164,7 +164,7 @@ public class DatasetService {
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
         for (String labelId : sample.getLabels()) {
             Label foundLabel = labelRepository.findById(labelId).orElse(null);
-            if (foundLabel == null) {
+            if (foundLabel == null || !foundLabel.getIsActive()) {
                 continue;
             } else {
                 LabelResponseDto labelResponseDto = LabelResponseDto.builder()
@@ -355,6 +355,7 @@ public class DatasetService {
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
         for(String labelId : sample.getLabels()) {
             Label label = labelRepository.findById(labelId).orElse(null);
+            if(label == null || label.getIsActive()) continue;
             LabelResponseDto labelResponseDto = LabelResponseDto.builder()
                     .labelId(label.getId())
                     .labelName(label.getName())
