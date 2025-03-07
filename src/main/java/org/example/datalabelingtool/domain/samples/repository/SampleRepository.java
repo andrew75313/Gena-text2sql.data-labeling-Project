@@ -17,12 +17,10 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "ORDER BY s.sampleDataId ASC")
     List<Sample> findLatestUpdatedSample();
 
-    @Query(value = "SELECT s.* FROM samples s " +
-            "WHERE JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) = ?1 " +
-            "AND s.status IN ('UPDATED', 'DELETED', 'CREATED') " +
-            "ORDER BY s.version_id DESC " +
-            "LIMIT 1", nativeQuery = true)
-    Optional<Sample> findLatestBySampleId(String sampleId);
+    @Query("SELECT s.versionId FROM Sample s " +
+            "WHERE s.sampleDataId = ?1 " +
+            "AND s.status IN ('UPDATED', 'DELETED', 'CREATED') ")
+    Long findLatestVersionBySampleId(Long sampleDataId);
 
     @Query("SELECT s FROM Sample s " +
             "WHERE s.status IN ('REQUESTED_UPDATE', 'REQUESTED_DELETE')" +

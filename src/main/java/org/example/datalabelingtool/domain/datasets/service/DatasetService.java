@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.example.datalabelingtool.domain.datasets.dto.DatasetMetadataDto;
 import org.example.datalabelingtool.domain.datasets.entity.DatasetColumn;
@@ -31,12 +32,16 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatasetService {
@@ -52,7 +57,8 @@ public class DatasetService {
         String datasetName = metadata.getDatasetName();
         String datasetDescription = metadata.getDatasetDescription();
 
-        if(!sampleRepository.findByDatasetName(datasetName).isEmpty()) throw new IllegalArgumentException("Dataset already exists");
+        if (!sampleRepository.findByDatasetName(datasetName).isEmpty())
+            throw new IllegalArgumentException("Dataset already exists");
 
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             String[] columns = csvReader.readNext();
@@ -236,14 +242,10 @@ public class DatasetService {
             throw new IllegalArgumentException("User is not assigned to Sample");
 
         Long versionId = sample.getVersionId();
-        Map<String, Object> sampleDataMap = getSampleDataMap(sample.getId());
-        String sampleId = (String) sampleDataMap.get("id");
 
-        Sample latestSample = sampleRepository.findLatestBySampleId(sampleId).orElseThrow(
-                () -> new IllegalArgumentException("Bad Request")
-        );
+        Long latestSampleVersion = sampleRepository.findLatestVersionBySampleId(sample.getSampleDataId());
 
-        if (latestSample.getVersionId() > versionId) throw new IllegalArgumentException("Higher Version exists");
+        if (latestSampleVersion > versionId) throw new IllegalArgumentException("Higher Version exists");
 
         if (passed && deleted)
             throw new IllegalArgumentException("Passed and Deleted can't be requested at the same time");
@@ -258,18 +260,11 @@ public class DatasetService {
 
         SampleStatus updatedStatus = sample.getStatus();
 
-        if (!sqlQuery.isEmpty()) {
-            if (sampleDataMap.containsKey(DatasetColumn.SQL_QUERY.toString())) {
-                sampleDataMap.put(DatasetColumn.SQL_QUERY.toString(), sqlQuery);
-                updatedStatus = SampleStatus.REQUESTED_UPDATE;
-            }
-        }
+        sqlQuery = requestDto.getSqlQuery().isEmpty() ? sample.getSqlQuery() : requestDto.getSqlQuery();
+        naturalQuestion = requestDto.getNaturalQuestion().isEmpty() ? sample.getNaturalQuestion() : requestDto.getNaturalQuestion();
 
-        if (!naturalQuestion.isEmpty()) {
-            if (sampleDataMap.containsKey(DatasetColumn.NATURAL_QUESTION.toString())) {
-                sampleDataMap.put(DatasetColumn.NATURAL_QUESTION.toString(), naturalQuestion);
-                updatedStatus = SampleStatus.REQUESTED_UPDATE;
-            }
+        if (!requestDto.getSqlQuery().isEmpty() || !requestDto.getNaturalQuestion().isEmpty()) {
+            updatedStatus = SampleStatus.REQUESTED_UPDATE;
         }
 
         if (passed) updatedStatus = SampleStatus.REQUESTED_UPDATE;
@@ -287,11 +282,14 @@ public class DatasetService {
 
         Sample updatedSample = Sample.builder()
                 .id(UUID.randomUUID().toString())
+                .sampleDataId(sample.getSampleDataId())
+                .naturalQuestion(naturalQuestion)
+                .sqlQuery(sqlQuery)
                 .datasetName(sample.getDatasetName())
                 .datasetDescription(sample.getDatasetDescription())
                 .versionId(sample.getVersionId())
                 .status(updatedStatus)
-                .sampleData(objectMapper.writeValueAsString(sampleDataMap))
+                .sampleData(sample.getSampleData())
                 .group(sample.getGroup())
                 .updatedBy(user.getId())
                 .labels(updatedLabels)
@@ -358,9 +356,9 @@ public class DatasetService {
         }
 
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
-        for(String labelId : sample.getLabels()) {
+        for (String labelId : sample.getLabels()) {
             Label label = labelRepository.findById(labelId).orElse(null);
-            if(label == null || label.getIsActive()) continue;
+            if (label == null || label.getIsActive()) continue;
             LabelResponseDto labelResponseDto = LabelResponseDto.builder()
                     .labelId(label.getId())
                     .labelName(label.getName())
