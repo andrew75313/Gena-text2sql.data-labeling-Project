@@ -3,6 +3,7 @@ package org.example.datalabelingtool.domain.users.dto;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleWithUpdateStatusDto;
 import org.example.datalabelingtool.domain.users.entity.UserRole;
 
 import java.time.LocalDateTime;
@@ -17,5 +18,5 @@ public class UserSampleResponseDto {
     private List<String> groupIds;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<SampleResponseDto> samples;
+    private List<SampleWithUpdateStatusDto> samples;
 }

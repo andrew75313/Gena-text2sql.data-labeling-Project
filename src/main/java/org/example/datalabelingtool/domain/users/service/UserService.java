@@ -12,6 +12,7 @@ import org.example.datalabelingtool.domain.labels.dto.LabelResponseDto;
 import org.example.datalabelingtool.domain.labels.entity.Label;
 import org.example.datalabelingtool.domain.labels.repository.LabelRepository;
 import org.example.datalabelingtool.domain.samples.dto.SampleResponseDto;
+import org.example.datalabelingtool.domain.samples.dto.SampleWithUpdateStatusDto;
 import org.example.datalabelingtool.domain.samples.entity.Sample;
 import org.example.datalabelingtool.domain.samples.repository.SampleRepository;
 import org.example.datalabelingtool.domain.users.dto.*;
@@ -111,8 +112,8 @@ public class UserService {
 
         List<Group> groupList = groupRepository.findByUserId(user.getId());
 
-        List<SampleResponseDto> sampleResponseDtoList = sampleRepository.findAllByUserId(id).stream()
-                .map(this::toSampleResponseDto)
+        List<SampleWithUpdateStatusDto> responseDtoList = sampleRepository.findAllByUserId(id).stream()
+                .map(this::toSampleWithUpdateStatusDto)
                 .toList();
 
         return UserSampleResponseDto.builder()
@@ -122,7 +123,7 @@ public class UserService {
                 .groupIds(groupList.stream().map(Group::getId).collect(Collectors.toList()))
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
-                .samples(sampleResponseDtoList)
+                .samples(responseDtoList)
                 .build();
     }
 
@@ -139,11 +140,14 @@ public class UserService {
                 .build();
     }
 
-    private SampleResponseDto toSampleResponseDto(Sample sample) {
+    private SampleWithUpdateStatusDto toSampleWithUpdateStatusDto(Sample sample) {
         UserSimpleResponseDto userSimpleResponseDto = null;
+        User user = null;
 
         if (sample.getUpdatedBy() != null) {
-            User user = userRepository.findById(sample.getUpdatedBy()).orElse(null);
+            user = userRepository.findById(sample.getUpdatedBy()).orElseThrow(
+                    () -> new EntityNotFoundException("User not found")
+            );
 
             userSimpleResponseDto = UserSimpleResponseDto.builder()
                     .id(user.getId())
@@ -153,10 +157,9 @@ public class UserService {
         }
 
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
-        for(String labelId : sample.getLabels()) {
+        for (String labelId : sample.getLabels()) {
             Label label = labelRepository.findById(labelId).orElse(null);
-            log.info(label.getName());
-            if(label == null || !label.getIsActive()) continue;
+            if (label == null || !label.getIsActive()) continue;
             LabelResponseDto labelResponseDto = LabelResponseDto.builder()
                     .labelId(label.getId())
                     .labelName(label.getName())
@@ -164,10 +167,17 @@ public class UserService {
             labelResponseDtoList.add(labelResponseDto);
         }
 
-        return SampleResponseDto.builder()
+        Boolean isUpdated = (user != null) &&
+                !sampleRepository.findRequestedSampleByUserId(user.getId(), sample.getSampleDataId()).isEmpty();
+
+        return SampleWithUpdateStatusDto.builder()
                 .id(sample.getId())
+                .isUpdated(isUpdated)
                 .datasetName(sample.getDatasetName())
                 .datasetDescription(sample.getDatasetDescription())
+                .sampleId(sample.getSampleDataId())
+                .naturalQuestion(sample.getNaturalQuestion())
+                .sqlQuery(sample.getSqlQuery())
                 .versionId(sample.getVersionId())
                 .status(sample.getStatus())
                 .updatedBy(userSimpleResponseDto)

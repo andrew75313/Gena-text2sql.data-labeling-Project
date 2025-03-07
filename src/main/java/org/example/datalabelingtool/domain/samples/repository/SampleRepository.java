@@ -49,24 +49,19 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
     List<Sample> getOtherSamplesOfSameVersion(Long versionId, Long sampleDataId);
 
     @Query(value = """
-    SELECT sub.*
-    FROM (
-        SELECT s.*, 
-               ROW_NUMBER() OVER (
-                   PARTITION BY JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) 
-                   ORDER BY s.updated_at DESC, s.version_id DESC
-               ) AS rn
-        FROM samples s
-        JOIN user_group ug ON ug.group_id = s.group_id
-        WHERE ug.user_id = ?1
-          AND (
-              s.updated_by = ?1
-              OR (COALESCE(s.updated_by, '') != ?1 AND s.status = 'CREATED')
-          )
-    ) sub
-    WHERE sub.rn = 1
-    ORDER BY CAST(JSON_UNQUOTE(JSON_EXTRACT(sub.sample_data, '$.id')) AS UNSIGNED) ASC
-    """, nativeQuery = true)
+                SELECT s.*
+                FROM samples s
+                JOIN user_group ug ON ug.group_id = s.group_id
+                WHERE ug.user_id = ?1
+                  AND s.status IN ('UPDATED', 'DELETED', 'CREATED')
+                  AND s.version_id = (
+                      SELECT MAX(s2.version_id)
+                      FROM samples s2
+                      WHERE s2.sample_data_id = s.sample_data_id
+                        AND s2.status IN ('UPDATED', 'DELETED', 'CREATED')
+                  )
+                ORDER BY s.sample_data_id ASC
+            """, nativeQuery = true)
     List<Sample> findAllByUserId(String userId);
 
     @Query("SELECT s FROM Sample s " +
@@ -80,4 +75,10 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "WHERE s.dataset_name = ?1 " +
             "LIMIT 1", nativeQuery = true)
     List<Sample> findByDatasetName(String datasetName);
+
+    @Query("SELECT s FROM Sample s " +
+            "WHERE s.id IN :sampleIds " +
+            "AND s.updatedBy = :userId " +
+            "AND s.status IN ('REQUESTED_UPDATE', 'REQUESTED_DELETE')")
+    List<Sample> findRequestedSampleByUserId(String userId, Long sampleId);
 }

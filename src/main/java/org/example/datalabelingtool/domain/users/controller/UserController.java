@@ -57,8 +57,8 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Get samples by user ID",
-            description = "Retrieves a list of samples associated with a specific user by their ID.",
+            summary = "Retrieve samples for a specific user",
+            description = "Fetches a list of samples associated with the given user ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Samples retrieved successfully",
                             content = @Content(mediaType = "application/json",
