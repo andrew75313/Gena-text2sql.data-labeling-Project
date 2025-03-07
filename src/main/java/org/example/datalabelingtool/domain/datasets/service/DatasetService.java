@@ -212,8 +212,81 @@ public class DatasetService {
         return new DataResponseDto(responseDtoList);
     }
 
+    @Transactional
     public DataResponseDto getRequestedSamples() {
-        List<SampleResponseDto> responseDtoList = sampleRepository.findRequestedSample().stream()
+        List<Sample> requestedSamples = sampleRepository.findRequestedSample();
+
+        if (requestedSamples.isEmpty()) {
+            throw new FileProcessingException("No requested data found for dataset");
+        }
+
+        Map<Long, Map<String, List<Sample>>> groupedSamples = requestedSamples.stream()
+                .collect(Collectors.groupingBy(
+                        Sample::getSampleDataId,
+                        Collectors.groupingBy(Sample::getUpdatedBy)
+                ));
+
+        List<Sample> newSamples = new ArrayList<>();
+
+        for (Map.Entry<Long, Map<String, List<Sample>>> entry : groupedSamples.entrySet()) {
+            Long sampleDataId = entry.getKey();
+            Map<String, List<Sample>> userSamples = entry.getValue();
+
+            Sample oldestSample = sampleRepository.findLatestValidSample(sampleDataId);
+            if (oldestSample == null) {
+                throw new FileProcessingException("No valid original sample found");
+            }
+
+            for (Map.Entry<String, List<Sample>> userEntry : userSamples.entrySet()) {
+                String updatedBy = userEntry.getKey();
+                List<Sample> samples = userEntry.getValue();
+
+                Sample latestSample = samples.stream()
+                        .max(Comparator.comparing(Sample::getVersionId))
+                        .orElseThrow(() -> new FileProcessingException("No latest sample found"));
+
+                String latestNaturalQuestion = oldestSample.getNaturalQuestion().equals(latestSample.getNaturalQuestion())
+                        ? oldestSample.getNaturalQuestion()
+                        : latestSample.getNaturalQuestion();
+
+                String latestSqlQuery = oldestSample.getSqlQuery().equals(latestSample.getSqlQuery())
+                        ? oldestSample.getSqlQuery()
+                        : latestSample.getSqlQuery();
+
+                log.info(latestNaturalQuestion + " / " + latestSqlQuery);
+
+                SampleStatus newStatus = latestSample.getStatus() == SampleStatus.REQUESTED_DELETE
+                        ? SampleStatus.REQUESTED_DELETE
+                        : SampleStatus.REQUESTED_UPDATE;
+
+                Sample newSample = Sample.builder()
+                        .id(UUID.randomUUID().toString())
+                        .sampleDataId(sampleDataId)
+                        .naturalQuestion(latestNaturalQuestion)
+                        .sqlQuery(latestSqlQuery)
+                        .datasetName(latestSample.getDatasetName())
+                        .datasetDescription(latestSample.getDatasetDescription())
+                        .versionId(latestSample.getVersionId())
+                        .status(newStatus)
+                        .sampleData(latestSample.getSampleData())
+                        .labels(latestSample.getLabels())
+                        .updatedBy(updatedBy)
+                        .group(latestSample.getGroup())
+                        .build();
+
+                if (newSample.getStatus() == SampleStatus.REQUESTED_UPDATE) {
+                    newSample.getGroup().addSample(newSample);
+                }
+
+                newSamples.add(newSample);
+            }
+        }
+
+        sampleRepository.saveAll(newSamples);
+
+        List<Sample> latestSamples = sampleRepository.findLatestRequestedSamples();
+
+        List<SampleResponseDto> responseDtoList = latestSamples.stream()
                 .map(this::toSampleResponseDto)
                 .collect(Collectors.toList());
 
@@ -308,7 +381,7 @@ public class DatasetService {
     }
 
     @Transactional
-    public SampleApproveResponseDto approveSample(@Valid String id) throws JsonProcessingException {
+    public SampleApproveResponseDto approveSample(String id) throws JsonProcessingException {
         Sample sample = findSample(id);
         sample.updateStatus(SampleStatus.UPDATED);
 
