@@ -145,6 +145,9 @@ public class DatasetService {
 
             for (Sample sample : samples) {
                 JsonObject sampleData = JsonParser.parseString(sample.getSampleData()).getAsJsonObject();
+                sampleData.addProperty(DatasetColumn.NATURAL_QUESTION.toString(),
+                        sample.getNaturalQuestion());
+                sampleData.addProperty(DatasetColumn.SQL_QUERY.toString(), sample.getSqlQuery());
 
                 String[] row = Arrays.stream(headers)
                         .map(header -> sampleData.has(header) ? sampleData.get(header).getAsString() : "")
