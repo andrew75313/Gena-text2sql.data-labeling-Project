@@ -339,7 +339,7 @@ public class DatasetService {
         sqlQuery = requestDto.getSqlQuery().isEmpty() ? sample.getSqlQuery() : requestDto.getSqlQuery();
         naturalQuestion = requestDto.getNaturalQuestion().isEmpty() ? sample.getNaturalQuestion() : requestDto.getNaturalQuestion();
 
-        if (!requestDto.getSqlQuery().isEmpty() || !requestDto.getNaturalQuestion().isEmpty()) {
+        if (!requestDto.getSqlQuery().isEmpty() || !requestDto.getNaturalQuestion().isEmpty() || !requestDto.getLabels().isEmpty()) {
             updatedStatus = SampleStatus.REQUESTED_UPDATE;
         }
 
