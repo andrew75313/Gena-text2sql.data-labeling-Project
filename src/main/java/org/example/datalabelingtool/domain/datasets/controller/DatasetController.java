@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/datasets")
@@ -126,9 +128,9 @@ public class DatasetController {
             }
     )
     @PostMapping("/{id}")
-    public ResponseEntity<SampleResponseDto> updateSample(@Valid @PathVariable String id,
-                                                          @Valid @RequestBody SampleUpdateRequestDto requestDto) throws JsonProcessingException {
-        SampleResponseDto responseDto = datasetService.updateSample(id, requestDto);
+    public ResponseEntity<DataResponseDto> updateSample(@Valid @PathVariable String id,
+                                                                 @Valid @RequestBody SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+        DataResponseDto responseDto = datasetService.updateSample(id, requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

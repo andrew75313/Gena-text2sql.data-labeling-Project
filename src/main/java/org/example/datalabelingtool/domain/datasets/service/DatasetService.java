@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -294,7 +296,7 @@ public class DatasetService {
     }
 
     @Transactional
-    public SampleResponseDto updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
+    public DataResponseDto<List<SampleResponseDto>> updateSample(String id, SampleUpdateRequestDto requestDto) throws JsonProcessingException {
         String username = requestDto.getUsername();
         String sqlQuery = requestDto.getSqlQuery();
         String naturalQuestion = requestDto.getNaturalQuestion();
@@ -334,50 +336,36 @@ public class DatasetService {
         if (!passed && !deleted && sqlQuery.isEmpty() && naturalQuestion.isEmpty() && labels.isEmpty())
             throw new IllegalArgumentException("No update requested");
 
-        SampleStatus updatedStatus = sample.getStatus();
+        List<Sample> updatedSamples = new ArrayList<>();
 
-        sqlQuery = requestDto.getSqlQuery().isEmpty() ? sample.getSqlQuery() : requestDto.getSqlQuery();
-        naturalQuestion = requestDto.getNaturalQuestion().isEmpty() ? sample.getNaturalQuestion() : requestDto.getNaturalQuestion();
-
-        if (!requestDto.getSqlQuery().isEmpty() || !requestDto.getNaturalQuestion().isEmpty() || !requestDto.getLabels().isEmpty()) {
-            updatedStatus = SampleStatus.REQUESTED_UPDATE;
+        if (!sqlQuery.isEmpty()) {
+            updatedSamples.add(createUpdatedSample(sample, user, SampleStatus.REQUESTED_UPDATE, sqlQuery, sample.getNaturalQuestion(), sample.getLabels()));
         }
 
-        if (passed) updatedStatus = SampleStatus.REQUESTED_UPDATE;
-        if (deleted) updatedStatus = SampleStatus.REQUESTED_DELETE;
-
-        List<String> updatedLabels = new ArrayList<>();
-        for (String labelId : labels) {
-            Label foundLabel = labelRepository.findById(labelId).orElse(null);
-            if (foundLabel == null) {
-                continue;
-            } else {
-                updatedLabels.add(foundLabel.getId());
-            }
+        if (!naturalQuestion.isEmpty()) {
+            updatedSamples.add(createUpdatedSample(sample, user, SampleStatus.REQUESTED_UPDATE, sample.getSqlQuery(), naturalQuestion, sample.getLabels()));
         }
 
-        Sample updatedSample = Sample.builder()
-                .id(UUID.randomUUID().toString())
-                .sampleDataId(sample.getSampleDataId())
-                .naturalQuestion(naturalQuestion)
-                .sqlQuery(sqlQuery)
-                .datasetName(sample.getDatasetName())
-                .datasetDescription(sample.getDatasetDescription())
-                .versionId(sample.getVersionId())
-                .status(updatedStatus)
-                .sampleData(sample.getSampleData())
-                .group(sample.getGroup())
-                .updatedBy(user.getId())
-                .labels(updatedLabels)
-                .build();
+        if (!labels.isEmpty()) {
+            List<String> updatedLabels = labels.stream()
+                    .filter(labelId -> labelRepository.findById(labelId).isPresent())
+                    .toList();
+            updatedSamples.add(createUpdatedSample(sample, user, SampleStatus.REQUESTED_UPDATE, sample.getSqlQuery(), sample.getNaturalQuestion(), updatedLabels));
+        }
 
-        sampleRepository.save(updatedSample);
+        if (passed) {
+            updatedSamples.add(createUpdatedSample(sample, user, SampleStatus.REQUESTED_UPDATE, sample.getSqlQuery(), sample.getNaturalQuestion(), sample.getLabels()));
+        }
 
-        sample.getGroup().getSamples().add(updatedSample);
+        if (deleted) {
+            updatedSamples.add(createUpdatedSample(sample, user, SampleStatus.REQUESTED_DELETE, sample.getSqlQuery(), sample.getNaturalQuestion(), sample.getLabels()));
+        }
 
-        Sample responseSample = findSample(updatedSample.getId());
+        sampleRepository.saveAll(updatedSamples);
+        sample.getGroup().getSamples().addAll(updatedSamples);
+        sampleRepository.flush();
 
-        return toSampleResponseDto(responseSample);
+        return new DataResponseDto<>(updatedSamples.stream().map(this::toSampleResponseDto).toList());
     }
 
     @Transactional
@@ -420,6 +408,8 @@ public class DatasetService {
 
     private SampleResponseDto toSampleResponseDto(Sample sample) {
         UserSimpleResponseDto userSimpleResponseDto = null;
+
+        sample = sampleRepository.findById(sample.getId()).orElse(null);
 
         if (sample.getUpdatedBy() != null) {
             User user = userRepository.findById(sample.getUpdatedBy()).orElse(null);
@@ -470,5 +460,22 @@ public class DatasetService {
         return sampleDataMap;
     }
 
-
+    private Sample createUpdatedSample(Sample sample, User user,
+                                       SampleStatus status, String sqlQuery,
+                                       String naturalQuestion, List<String> labels) {
+        return Sample.builder()
+                .id(UUID.randomUUID().toString())
+                .sampleDataId(sample.getSampleDataId())
+                .naturalQuestion(naturalQuestion)
+                .sqlQuery(sqlQuery)
+                .datasetName(sample.getDatasetName())
+                .datasetDescription(sample.getDatasetDescription())
+                .versionId(sample.getVersionId())
+                .status(status)
+                .sampleData(sample.getSampleData())
+                .group(sample.getGroup())
+                .updatedBy(user.getId())
+                .labels(labels)
+                .build();
+    }
 }
