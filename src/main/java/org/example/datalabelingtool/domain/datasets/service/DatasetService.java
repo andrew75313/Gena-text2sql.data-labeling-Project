@@ -411,23 +411,78 @@ public class DatasetService {
     }
 
     @Transactional
-    public SampleApproveResponseDto approveSample(String id) throws JsonProcessingException {
-        Sample sample = findSample(id);
-        sample.updateStatus(SampleStatus.UPDATED);
+    public SampleApproveResponseDto approveSample(SampelApproveRequestDto requestDto) throws JsonProcessingException {
+        List<String> requestedSampleIds = requestDto.getLatestEventIds();
 
-        Map<String, Object> sampleDataMap = getSampleDataMap(sample.getId());
-        String sampleId = (String) sampleDataMap.get("id");
+        List<Sample> requestedSamples = sampleRepository.findAllById(requestedSampleIds);
+        if (requestedSamples.isEmpty()) {
+            throw new IllegalArgumentException("No requested samples found");
+        }
 
-        List<Sample> sampleList = sampleRepository.findRequestedBySampleIdAndVersionId(sampleId, sample.getVersionId());
-        for (Sample requestedSample : sampleList) {
-            requestedSample.updateStatus(SampleStatus.REJECTED);
+        Sample sample = sampleRepository.findLatestValidSample(requestedSamples.get(0).getSampleDataId());
+        if (sample == null) throw new EntityNotFoundException("Original Sample not found");
+
+        String latestSqlQuery = sample.getSqlQuery();
+        String latestNaturalQuestion = sample.getNaturalQuestion();
+        List<String> latestLabels = new ArrayList<>(sample.getLabels());
+        SampleStatus latestStatus = SampleStatus.UPDATED;
+
+        for (Sample requestedSample : requestedSamples) {
+            if (requestedSample.getStatus() == SampleStatus.REQUESTED_DELETE) {
+                latestStatus = SampleStatus.DELETED;
+                break;
+            }
+            if (!requestedSample.getSqlQuery().equals(sample.getSqlQuery())) {
+                latestSqlQuery = requestedSample.getSqlQuery();
+            }
+            if (!requestedSample.getNaturalQuestion().equals(sample.getNaturalQuestion())) {
+                latestNaturalQuestion = requestedSample.getNaturalQuestion();
+            }
+            if (!requestedSample.getLabels().equals(sample.getLabels())) {
+                latestLabels = requestedSample.getLabels();
+            }
+        }
+
+        String newSampleId = UUID.randomUUID().toString();
+        if (!latestSqlQuery.equals(sample.getSqlQuery()) ||
+                !latestNaturalQuestion.equals(sample.getNaturalQuestion()) ||
+                !latestLabels.equals(sample.getLabels()) ||
+                latestStatus != SampleStatus.UPDATED) {
+
+            Sample newSample = Sample.builder()
+                    .id(newSampleId)
+                    .sampleDataId(sample.getSampleDataId())
+                    .naturalQuestion(latestNaturalQuestion)
+                    .sqlQuery(latestSqlQuery)
+                    .labels(latestLabels)
+                    .datasetName(sample.getDatasetName())
+                    .datasetDescription(sample.getDatasetDescription())
+                    .versionId(sample.getVersionId() + 1)
+                    .status(latestStatus)
+                    .sampleData(sample.getSampleData())
+                    .updatedBy(requestedSamples.get(0).getUpdatedBy())
+                    .group(sample.getGroup())
+                    .build();
+
+            sampleRepository.save(newSample);
+
+            newSample.getGroup().getSamples().add(newSample);
+        }
+
+        List<Sample> allRequestedSamples = sampleRepository.findRequestedBySampleIdAndVersionId(sample.getSampleDataId() ,
+                sample.getVersionId());
+
+        for (Sample requestedSample : allRequestedSamples) {
+            if (requestedSampleIds.contains(requestedSample.getId())) {
+                requestedSample.updateStatus(SampleStatus.APPROVED);
+            } else {
+                requestedSample.updateStatus(SampleStatus.REJECTED);
+            }
             requestedSample.updateVersionId(requestedSample.getVersionId() + 1);
         }
 
-        sample.updateVersionId(sample.getVersionId() + 1);
-
         return SampleApproveResponseDto.builder()
-                .sampleId(sample.getId())
+                .sampleId(newSampleId)
                 .status(SampleStatus.UPDATED.toString())
                 .approvedAt(LocalDateTime.now())
                 .build();

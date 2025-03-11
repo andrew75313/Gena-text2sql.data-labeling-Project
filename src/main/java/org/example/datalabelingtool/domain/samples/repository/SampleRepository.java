@@ -28,21 +28,16 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
             "ORDER BY s.sampleDataId ASC")
     List<Sample> findRequestedSample();
 
-    @Query("SELECT s FROM Sample s WHERE s.status IN ('REQUESTED_UPDATE', 'REQUESTED_DELETE') " +
-            "AND s.versionId = (SELECT MAX(s2.versionId) FROM Sample s2 WHERE s2.sampleDataId = s.sampleDataId) " +
-            "ORDER BY s.sampleDataId ASC")
-    List<Sample> findLatestRequestedSamples();
-
     @Query("SELECT s FROM Sample s WHERE s.sampleDataId = :sampleDataId " +
             "AND s.status IN ('UPDATED', 'DELETED', 'CREATED') " +
             "ORDER BY s.versionId DESC LIMIT 1")
     Sample findLatestValidSample(Long sampleDataId);
 
-    @Query(value = "SELECT s.* FROM samples s " +
-            "WHERE JSON_UNQUOTE(JSON_EXTRACT(s.sample_data, '$.id')) = ?1 " +
-            "AND s.status LIKE 'REQUESTED_%' " +
-            "And s.version_id = ?2", nativeQuery = true)
-    List<Sample> findRequestedBySampleIdAndVersionId(String sampleId, Long versionId);
+    @Query(value = "SELECT s FROM Sample s " +
+            "WHERE s.status IN ('REQUESTED_UPDATE', 'REQUESTED_DELETE') " +
+            "AND s.sampleDataId = :sampleId " +
+            "AND s.versionId = :versionId")
+    List<Sample> findRequestedBySampleIdAndVersionId(Long sampleId, Long versionId);
 
     @Query(value = "SELECT u.* " +
             "FROM users u " +

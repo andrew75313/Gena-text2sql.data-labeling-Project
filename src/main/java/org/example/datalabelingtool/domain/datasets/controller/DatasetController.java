@@ -144,9 +144,9 @@ public class DatasetController {
                     @ApiResponse(responseCode = "404", description = "Sample not found")
             }
     )
-    @PatchMapping("/{id}/approve")
-    public ResponseEntity<SampleApproveResponseDto> approveSample(@Valid @PathVariable String id) throws JsonProcessingException {
-        SampleApproveResponseDto responseDto = datasetService.approveSample(id);
+    @PutMapping("/approve")
+    public ResponseEntity<SampleApproveResponseDto> approveSample(@Valid @RequestBody SampelApproveRequestDto requestDto) throws JsonProcessingException {
+        SampleApproveResponseDto responseDto = datasetService.approveSample(requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
@@ -160,7 +160,7 @@ public class DatasetController {
                     @ApiResponse(responseCode = "404", description = "Sample not found")
             }
     )
-    @PatchMapping("/{id}/reject")
+    @PutMapping("/{id}/reject")
     public ResponseEntity<SampleRejectResponseDto> rejectSample(@Valid @PathVariable String id) {
         SampleRejectResponseDto responseDto = datasetService.rejectSample(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
