@@ -32,7 +32,7 @@ public class DatasetController {
 
     @Operation(
             summary = "Upload CSV file",
-            description = "Uploads a CSV file along with its metadata.",
+            description = "Uploads a CSV file along with its metadata. CSV file must have 5 columns : `sql_query`, `natural_question`, `no_sql_template`, `sql_template`, `id`",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Dataset uploaded successfully",
                             content = @Content(mediaType = "application/json",
@@ -70,7 +70,7 @@ public class DatasetController {
 
     @Operation(
             summary = "Get latest updated samples",
-            description = "Retrieves the latest updated samples from the dataset.",
+            description = "Retrieves the latest updated samples(including deleted samples) from the dataset.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Latest updated samples retrieved successfully",
                             content = @Content(mediaType = "application/json",
@@ -86,7 +86,7 @@ public class DatasetController {
 
     @Operation(
             summary = "Get requested samples",
-            description = "Fetches all requested samples.",
+            description = "Fetches all requested samples. For each sample, only the latest updates requested by the user are returned. You can approve updates by using the provided latestEventIds, which will allow you to finalize the update request.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Requested samples retrieved successfully",
                             content = @Content(mediaType = "application/json",
@@ -117,8 +117,8 @@ public class DatasetController {
     }
 
     @Operation(
-            summary = "Update sample",
-            description = "Updates a sample by its ID.",
+            summary = "Request sample updates",
+            description = "Request updates of a specific sample by its ID. SQL Query, Natural Question values, and labels(requested by label IDs) can be requested. When the sample is passed or deleted, the update should not include the values to be updated.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Sample updated successfully",
                             content = @Content(mediaType = "application/json",
@@ -135,8 +135,8 @@ public class DatasetController {
     }
 
     @Operation(
-            summary = "Approve sample",
-            description = "Approves a sample by its ID.",
+            summary = "Approve samples",
+            description = "Approves a sample by its ID. When approving, the latest version of the sample data is updated using the provided latestEventIds to ensure the most recent information is reflected.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Sample approved successfully",
                             content = @Content(mediaType = "application/json",
@@ -152,7 +152,7 @@ public class DatasetController {
 
     @Operation(
             summary = "Reject sample",
-            description = "Rejects a sample by its ID.",
+            description = "Rejects a specific sample request by its ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Sample rejected successfully",
                             content = @Content(mediaType = "application/json",
