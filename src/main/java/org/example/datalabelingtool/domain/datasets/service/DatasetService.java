@@ -6,9 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +40,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -173,7 +173,7 @@ public class DatasetService {
         List<SampleResponseDto> otherVersionsSamples = sampleRepository.getOtherSamplesOfSameVersion(sample.getVersionId(), sample.getSampleDataId())
                 .stream()
                 .map(this::toSampleResponseDto)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
         for (String labelId : sample.getLabels()) {
@@ -209,7 +209,7 @@ public class DatasetService {
     public DataResponseDto getLatestUpdatesSamples() {
         List<SampleResponseDto> responseDtoList = sampleRepository.findLatestUpdatedSample().stream()
                 .map(this::toSampleResponseDto)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         return new DataResponseDto(responseDtoList);
     }
@@ -217,6 +217,7 @@ public class DatasetService {
     @Transactional
     public DataResponseDto getRequestedSamples() {
         List<Sample> requestedSamples = sampleRepository.findRequestedSample();
+        List<LatestSampleDto> responseDtoList = new ArrayList<>();
 
         if (requestedSamples.isEmpty()) {
             throw new FileProcessingException("No requested data found for dataset");
@@ -227,8 +228,6 @@ public class DatasetService {
                         Sample::getSampleDataId,
                         Collectors.groupingBy(Sample::getUpdatedBy)
                 ));
-
-        List<Sample> newSamples = new ArrayList<>();
 
         for (Map.Entry<Long, Map<String, List<Sample>>> entry : groupedSamples.entrySet()) {
             Long sampleDataId = entry.getKey();
@@ -241,56 +240,99 @@ public class DatasetService {
 
             for (Map.Entry<String, List<Sample>> userEntry : userSamples.entrySet()) {
                 String updatedBy = userEntry.getKey();
-                List<Sample> samples = userEntry.getValue();
+                List<Sample> samples = userEntry.getValue().stream()
+                        .map(sample -> findSample(sample.getId()))
+                        .toList();
 
-                Sample latestSample = samples.stream()
-                        .max(Comparator.comparing(Sample::getVersionId))
-                        .orElseThrow(() -> new FileProcessingException("No latest sample found"));
+                String latestSqlQuery;
+                String latestNaturalQuestion;
+                List<String> latestLabels;
+                List<String> eventSampleIds = new ArrayList<>();
 
-                String latestNaturalQuestion = oldestSample.getNaturalQuestion().equals(latestSample.getNaturalQuestion())
-                        ? oldestSample.getNaturalQuestion()
-                        : latestSample.getNaturalQuestion();
+                Sample newSample = samples.stream()
+                        .filter(sample -> sample.getStatus() == SampleStatus.REQUESTED_DELETE)
+                        .findFirst()
+                        .orElse(samples.get(0));
+                SampleStatus newStatus;
 
-                String latestSqlQuery = oldestSample.getSqlQuery().equals(latestSample.getSqlQuery())
-                        ? oldestSample.getSqlQuery()
-                        : latestSample.getSqlQuery();
+                if (newSample.getStatus() == SampleStatus.REQUESTED_DELETE) {
+                    latestSqlQuery = oldestSample.getSqlQuery();
+                    latestNaturalQuestion = oldestSample.getNaturalQuestion();
+                    latestLabels = oldestSample.getLabels();
+                    eventSampleIds.add(newSample.getId());
+                    newStatus = SampleStatus.REQUESTED_DELETE;
+                } else {
+                    Sample latestSampleForSql = samples.stream()
+                            .filter(sample -> !sample.getSqlQuery().equals(oldestSample.getSqlQuery()))
+                            .findFirst()
+                            .orElse(oldestSample);
 
-                log.info(latestNaturalQuestion + " / " + latestSqlQuery);
+                    Sample latestSampleForNaturalQuestion = samples.stream()
+                            .filter(sample -> !sample.getNaturalQuestion().equals(oldestSample.getNaturalQuestion()))
+                            .findFirst()
+                            .orElse(oldestSample);
 
-                SampleStatus newStatus = latestSample.getStatus() == SampleStatus.REQUESTED_DELETE
-                        ? SampleStatus.REQUESTED_DELETE
-                        : SampleStatus.REQUESTED_UPDATE;
+                    Sample latestSampleForLabels = samples.stream()
+                            .filter(sample -> !sample.getLabels().equals(oldestSample.getLabels()))
+                            .findFirst()
+                            .orElse(oldestSample);
 
-                Sample newSample = Sample.builder()
-                        .id(UUID.randomUUID().toString())
-                        .sampleDataId(sampleDataId)
-                        .naturalQuestion(latestNaturalQuestion)
-                        .sqlQuery(latestSqlQuery)
-                        .datasetName(latestSample.getDatasetName())
-                        .datasetDescription(latestSample.getDatasetDescription())
-                        .versionId(latestSample.getVersionId())
-                        .status(newStatus)
-                        .sampleData(latestSample.getSampleData())
-                        .labels(latestSample.getLabels())
-                        .updatedBy(updatedBy)
-                        .group(latestSample.getGroup())
-                        .build();
+                    latestSqlQuery = latestSampleForSql.getSqlQuery();
+                    latestNaturalQuestion = latestSampleForNaturalQuestion.getNaturalQuestion();
+                    latestLabels = latestSampleForLabels.getLabels();
 
-                if (newSample.getStatus() == SampleStatus.REQUESTED_UPDATE) {
-                    newSample.getGroup().addSample(newSample);
+                    if (!latestSqlQuery.equals(oldestSample.getSqlQuery())) {
+                        eventSampleIds.add(latestSampleForSql.getId());
+                    }
+                    if (!latestNaturalQuestion.equals(oldestSample.getNaturalQuestion())) {
+                        eventSampleIds.add(latestSampleForNaturalQuestion.getId());
+                    }
+                    if (!latestLabels.equals(oldestSample.getLabels())) {
+                        eventSampleIds.add(latestSampleForLabels.getId());
+                    }
+
+                    newStatus = SampleStatus.REQUESTED_UPDATE;
                 }
 
-                newSamples.add(newSample);
+
+                UserSimpleResponseDto userSimpleResponseDto = null;
+
+
+                User user = userRepository.findById(updatedBy).orElse(null);
+
+                userSimpleResponseDto = UserSimpleResponseDto.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .role(user.getRole())
+                        .build();
+
+                List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
+                for (String labelId : latestLabels) {
+                    Label label = labelRepository.findById(labelId).orElse(null);
+                    if (label == null || !label.getIsActive()) continue;
+                    LabelResponseDto labelResponseDto = LabelResponseDto.builder()
+                            .labelId(label.getId())
+                            .labelName(label.getName())
+                            .build();
+                    labelResponseDtoList.add(labelResponseDto);
+                }
+
+                LatestSampleDto latestSampleDto = LatestSampleDto.builder()
+                        .sampleId(oldestSample.getSampleDataId())
+                        .naturalQuestion(latestNaturalQuestion)
+                        .sqlQuery(latestSqlQuery)
+                        .datasetName(oldestSample.getDatasetName())
+                        .datasetDescription(oldestSample.getDatasetDescription())
+                        .versionId(oldestSample.getVersionId())
+                        .status(newStatus)
+                        .labels(labelResponseDtoList)
+                        .updatedBy(userSimpleResponseDto)
+                        .latestEventIds(eventSampleIds)
+                        .build();
+
+                responseDtoList.add(latestSampleDto);
             }
         }
-
-        sampleRepository.saveAll(newSamples);
-
-        List<Sample> latestSamples = sampleRepository.findLatestRequestedSamples();
-
-        List<SampleResponseDto> responseDtoList = latestSamples.stream()
-                .map(this::toSampleResponseDto)
-                .collect(Collectors.toList());
 
         return new DataResponseDto(responseDtoList);
     }
@@ -424,7 +466,7 @@ public class DatasetService {
         List<LabelResponseDto> labelResponseDtoList = new ArrayList<>();
         for (String labelId : sample.getLabels()) {
             Label label = labelRepository.findById(labelId).orElse(null);
-            if (label == null || label.getIsActive()) continue;
+            if (label == null || !label.getIsActive()) continue;
             LabelResponseDto labelResponseDto = LabelResponseDto.builder()
                     .labelId(label.getId())
                     .labelName(label.getName())
