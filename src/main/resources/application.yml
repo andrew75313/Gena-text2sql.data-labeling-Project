@@ -5,9 +5,9 @@ spring:
       max-request-size: 10MB
 
   datasource:
-    url: ${MYSQL_DB_URL}
-    username : ${MYSQL_DB_USERNAME}
-    password: ${MYSQL_DB_PASSWORD}
+    url: jdbc:mysql://datalabeling_mysql:3306/datalabeling
+    username : root
+    password: ${MYSQL_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
