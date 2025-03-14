@@ -35,7 +35,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: labeling-app
+    container_name: labeling_app
     ports:
       - 8080:8080
     env_file: "db.env"
