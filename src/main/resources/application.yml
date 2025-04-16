@@ -5,7 +5,7 @@ spring:
       max-request-size: 10MB
 
   datasource:
-    url: jdbc:mysql://localhost:8080/datalabeling
+    url: jdbc:mysql://localhost:3306/datalabeling
     username : root
     password: ${MYSQL_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,7 +20,7 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
+      password:
       timeout: 2000
 
 app:
@@ -39,3 +39,11 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-token-time: ${JWT_ACCESS_TOKEN_TIME}
   refresh-token-time: ${JWT_REFRESH_TOKEN_TIME}
+
+logging:
+  level:
+    org.springframework.security: DEBUG    # Spring Security 관련 로그를 DEBUG 레벨로 출력
+    org.springframework.web: DEBUG         # 웹 관련 로그 출력 (예: 요청/응답 관련)
+    org.hibernate.SQL: DEBUG                # Hibernate SQL 쿼리 출력
+    org.springframework.jdbc.core: DEBUG   # JDBC 쿼리 출력
+    org.example.datalabelingtool: DEBUG     # 애플리케이션의 특정 패키지 로그 레벨 설정
