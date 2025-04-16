@@ -5,7 +5,7 @@ spring:
       max-request-size: 10MB
 
   datasource:
-    url: jdbc:mysql://datalabeling_mysql:3306/datalabeling
+    url: jdbc:mysql://localhost:8080/datalabeling
     username : root
     password: ${MYSQL_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -34,3 +34,8 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui/index.html
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-time: ${JWT_ACCESS_TOKEN_TIME}
+  refresh-token-time: ${JWT_REFRESH_TOKEN_TIME}
