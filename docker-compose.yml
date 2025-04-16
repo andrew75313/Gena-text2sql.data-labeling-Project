@@ -37,6 +37,13 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:latest
+    container_name: labeling_redis
+    env_file: "db.env"
+    networks:
+      - app-network
+
   java-app:
     build:
       context: .
