@@ -94,9 +94,9 @@ public class JwtUtil {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
-    public UUID getUserIdFromToken(String token) {
+    public String getUserIdFromToken(String token) {
         Claims claims = getClaimFromToken(token);
-        return UUID.fromString(claims.getSubject());
+        return claims.getSubject();
     }
 
     public Long getExpiration(String token) {

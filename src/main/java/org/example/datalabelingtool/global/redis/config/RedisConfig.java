@@ -1,4 +1,4 @@
-package org.example.datalabelingtool.global.config;
+package org.example.datalabelingtool.global.redis.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
