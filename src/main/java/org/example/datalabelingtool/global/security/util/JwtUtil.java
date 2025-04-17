@@ -1,4 +1,4 @@
-package org.example.datalabelingtool.global.security;
+package org.example.datalabelingtool.global.security.util;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.entity.User;
+import org.example.datalabelingtool.global.security.jwt.JwtProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

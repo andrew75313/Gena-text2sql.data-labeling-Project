@@ -1,10 +1,12 @@
-package org.example.datalabelingtool.global.security;
+package org.example.datalabelingtool.global.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.datalabelingtool.domain.users.entity.User;
+import org.example.datalabelingtool.global.security.util.JwtUtil;
+import org.example.datalabelingtool.global.security.user.UserDetailsImpl;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;

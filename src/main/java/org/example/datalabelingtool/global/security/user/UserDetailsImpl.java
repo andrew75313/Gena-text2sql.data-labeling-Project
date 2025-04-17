@@ -1,4 +1,4 @@
-package org.example.datalabelingtool.global.security;
+package org.example.datalabelingtool.global.security.user;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

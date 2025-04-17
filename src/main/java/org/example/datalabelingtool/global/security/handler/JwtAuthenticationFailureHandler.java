@@ -1,4 +1,4 @@
-package org.example.datalabelingtool.global.security;
+package org.example.datalabelingtool.global.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

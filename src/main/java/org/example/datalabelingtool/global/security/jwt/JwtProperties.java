@@ -1,4 +1,4 @@
-package org.example.datalabelingtool.global.security;
+package org.example.datalabelingtool.global.security.jwt;
 
 import lombok.Getter;
 import lombok.Setter;
