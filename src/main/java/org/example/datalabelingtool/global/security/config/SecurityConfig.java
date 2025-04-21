@@ -11,6 +11,7 @@ import org.example.datalabelingtool.global.security.util.JwtUtil;
 import org.example.datalabelingtool.global.security.user.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -76,11 +77,33 @@ public class SecurityConfig {
         );
 
 
-        http.authorizeHttpRequests((authorizeHttpRequests) ->
-                authorizeHttpRequests
-                        .requestMatchers("/api/login").permitAll()
-                        .requestMatchers( "/api/users").permitAll()
-                        .anyRequest().authenticated()
+        http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/api/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+
+                .requestMatchers(HttpMethod.POST, "/api/datasets/upload").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/datasets/download/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/datasets/latest-versions").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/datasets/approve").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/datasets/*/reject").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/groups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/groups").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/groups/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/groups/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/groups/*/update-reviewers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/groups/*/update-samples").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/labels").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/labels/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/labels").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/users/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasRole("ADMIN")
+
+                .anyRequest().authenticated()
         );
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
