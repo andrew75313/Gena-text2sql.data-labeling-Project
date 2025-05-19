@@ -65,9 +65,22 @@ Once your CSV file is ready, submit the dataset metadata along with the file to 
 2. Create a `db.env` file with the following environment variables (you can refer to `db.env.example` for guidance):
 
     ```
-    MYSQL_DB_PASSWORD=your_password
-    ADMIN_CODE=your_admin_code
-    MYSQL_ROOT_PASSWORD=your_root_password
+   # Admin Role Setting
+   ADMIN_CODE=your_admin_code  
+   
+   # MySQL Settings
+   MYSQL_DB_PASSWORD=your_password
+   MYSQL_ROOT_PASSWORD=your_root_password
+   
+   # Redis Settings
+   REDIS_HOST=your_redis_host  
+   REDIS_PORT=your_redis_port  
+   REDIS_PASSWORD=your_redis_password
+   
+   # JWT Settings
+   JWT_SECRET_KEY=your_jwt_secret_key  
+   JWT_ACCESS_TOKEN_TIME=your_access_token_time  
+   JWT_REFRESH_TOKEN_TIME=your_refresh_token_time
     ```
 
 3. Run the application using Docker Compose:
